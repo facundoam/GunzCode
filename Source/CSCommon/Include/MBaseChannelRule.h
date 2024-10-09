@@ -12,7 +12,7 @@ using namespace std;
 
 
 enum MCHANNEL_RULE {
-	MCHANNEL_RULE_NOVICE=0,
+	MCHANNEL_RULE_NOVICE = 0,
 	MCHANNEL_RULE_NEWBIE,
 	MCHANNEL_RULE_ROOKIE,
 	MCHANNEL_RULE_MASTERY,
@@ -74,7 +74,7 @@ public:
 		set<int>::iterator i = m_Set.begin();
 		set<int>::iterator e = m_Set.end();
 
-		for(;i != e; ++i )
+		for (; i != e; ++i)
 		{
 			// mlog( "game type : %d.\n", (*i) );
 		}
@@ -86,7 +86,7 @@ public:
 
 	const int GetFirstGameType()
 	{
-		if( empty() )
+		if (empty())
 		{
 			return -1;
 		}
@@ -98,26 +98,25 @@ public:
 class MChannelRule {
 protected:
 	int							m_nID;
-	string						m_Name;
+	int							m_nDefault;
+	std::string					m_Name;
 	MChannelRuleMapList			m_MapList;
 	MChannelRuleGameTypeList	m_GameTypeList;
-	int							m_nDefault;
 
 public:
-	MChannelRule()						{}
-	virtual ~MChannelRule()				{}
+	MChannelRule() : m_nID(0), m_nDefault(0) {}
+	virtual ~MChannelRule() {}
 	void Init(int nID, const char* pszName)
 	{
-		m_nDefault = 0;
 		m_nID = nID;
 		m_Name = pszName;
 	}
 
-	int GetID()							{ return m_nID; }
-	const char* GetName()				{ return m_Name.c_str(); }
+	int GetID() const { return m_nID; }
+	const char* GetName() { return m_Name.c_str(); }
 
-	void AddMap(string strMapName)		{ m_MapList.Add(strMapName); }
-	void AddGameType(int nGameTypeID)	{ m_GameTypeList.Add(nGameTypeID); }
+	void AddMap(string strMapName) { m_MapList.Add(strMapName); }
+	void AddGameType(int nGameTypeID) { m_GameTypeList.Add(nGameTypeID); }
 	bool CheckMap(int nMapID, bool bOnlyDuel)
 	{
 		return m_MapList.Exist(nMapID, bOnlyDuel);
@@ -141,10 +140,10 @@ public:
 #endif
 		return m_GameTypeList.Exist(nGameTypeID);
 	}
-	MChannelRuleMapList* GetMapList()					{ return &m_MapList; }
-	MChannelRuleGameTypeList* GetGameTypeList()			{ return &m_GameTypeList; }
-	void SetDefault( int nDefault)						{ m_nDefault = nDefault; }
-	int GetDefault()									{ return m_nDefault; }
+	MChannelRuleMapList* GetMapList() { return &m_MapList; }
+	MChannelRuleGameTypeList* GetGameTypeList() { return &m_GameTypeList; }
+	void SetDefault(int nDefault) { m_nDefault = nDefault; }
+	int GetDefault() { return m_nDefault; }
 };
 
 
@@ -157,7 +156,7 @@ private:
 public:
 	MChannelRuleMgr();
 	virtual ~MChannelRuleMgr();
-	void Clear();	
+	void Clear();
 	MChannelRule* GetRule(const string& strName);
 	MChannelRule* GetRule(MCHANNEL_RULE nChannelRule);
 

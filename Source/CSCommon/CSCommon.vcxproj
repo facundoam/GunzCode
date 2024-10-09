@@ -688,7 +688,7 @@
     </ClCompile>
     <Lib>
       <AdditionalOptions>/y3 %(AdditionalOptions)</AdditionalOptions>
-      <OutputFile>$(OutDir)CSCommonDE.lib</OutputFile>
+      <OutputFile>$(OutDir)CSCommonE.lib</OutputFile>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
   </ItemDefinitionGroup>
@@ -871,7 +871,6 @@
     <ClInclude Include="Include\MLadderMgr.h" />
     <ClInclude Include="Include\MLadderPicker.h" />
     <ClInclude Include="Include\MLadderStatistics.h" />
-    <ClInclude Include="Include\MLocaleDefine.h" />
     <ClInclude Include="Include\MMaster.h" />
     <ClInclude Include="Include\MMatchAccountPenaltyInfo.h" />
     <ClInclude Include="Include\MMatchActiveTrapMgr.h" />

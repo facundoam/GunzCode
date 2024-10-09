@@ -65,10 +65,6 @@
 #include "MFileDialog.h"
 #include "ZServerView.h"
 
-#ifdef _XTRAP
-#include "./XTrap/Xtrap_C_Interface.h"					// Update sgk 0706
-#endif
-
 #ifdef LOCALE_NHNUSA
 #include "ZNHN_USA_Report.h"
 #endif
@@ -223,25 +219,7 @@ bool ZGameInterface::OnCommand(MCommand* pCommand)
 				ZGetMyInfo()->SetBP(pCharInfo->nBP);
 				ZGetMyInfo()->SetXP((int)pCharInfo->nXP);
 				ZGetMyInfo()->SetLevel((int)pCharInfo->nLevel);
-				//버프정보임시주석 
-				/*pParam = pCommand->GetParameter(2);
-				if (pParam->GetType()!=MPT_BLOB) {
-					//_ASSERT(0);
-					break;
-				}
-
-				void* pCharBuffBlob = pParam->GetPointer();
-				MTD_CharBuffInfo* pCharBuffInfo = (MTD_CharBuffInfo*)MGetBlobArrayElement(pCharBuffBlob, 0);
-				ZGetMyInfo()->SetCharBuffInfo(pCharBuffInfo);
-				*/
-
-#ifdef _XTRAP
-				char szServerName[256];
-				strcpy( szServerName, ZGetGameClient()->GetServerName());
-
-				// XTrap 유져세팅
-				XTrap_C_SetUserInfoEx(const_cast<char*>(ZGetMyInfo()->GetAccountID()), szServerName, pCharInfo->szName, "", pCharInfo->nLevel, ZGetGameClient()->GetClientSocket()->GetSocket());	// Update sgk 0702
-#endif
+				
 
 				pParam = pCommand->GetParameter(2);
 				if (pParam->GetType()!=MPT_BLOB) {
@@ -840,28 +818,6 @@ bool ZGameInterface::OnCommand(MCommand* pCommand)
 		break;
 #endif
 
-	case MC_REQUEST_XTRAP_SEEDKEY:		// add sgk 0402
-		{
-			MCommandParameter* pParam = pCommand->GetParameter(0);
-			if (pParam->GetType() != MPT_BLOB)
-			{
-				break;
-			}
-			void* pComBuf = pParam->GetPointer();
-			unsigned char *szComBuf = (unsigned char *)MGetBlobArrayElement(pComBuf, 0);
-			ZApplication::GetGameInterface()->OnRequestXTrapSeedKey(szComBuf);
-		}
-		break;
-
-	case MC_REQUEST_XTRAP_DETECTCRACK:	// Update sgk 0706 (사용안함. 이전과의 호환을 위해 커맨드만 존재)
-		{
-		}
-		break;
-
-	case MC_REQUEST_XTRAP_HASHVALUE:	// Update sgk 0706 (사용안함. 이전과의 호환을 위해 커맨드만 존재)
-		{
-		}
-		break;
 
 	case MC_MATCH_DISCONNMSG :
 		{
@@ -881,24 +837,6 @@ bool ZGameInterface::OnCommand(MCommand* pCommand)
 		}
 		break;
 
-#ifdef _GAMEGUARD
-	case MC_REQUEST_GAMEGUARD_AUTH :
-	case MC_REQUEST_FIRST_GAMEGUARD_AUTH :
-		{
-			DWORD dwIndex;
-			DWORD dwValue1;
-			DWORD dwValue2;
-			DWORD dwValue3;
-
-			pCommand->GetParameter( &dwIndex, 0, MPT_UINT );
-			pCommand->GetParameter( &dwValue1, 1, MPT_UINT );
-			pCommand->GetParameter( &dwValue2, 2, MPT_UINT );
-			pCommand->GetParameter( &dwValue3, 3, MPT_UINT );
-
-			ZApplication::GetGameInterface()->OnRequestGameguardAuth( dwIndex, dwValue1, dwValue2, dwValue3 );
-		}
-		break;
-#endif
 
 	case MC_RESPONSE_GAMBLEITEMLIST :
 		{

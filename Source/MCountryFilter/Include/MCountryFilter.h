@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <WinSock2.h>
 
 using std::string;
 using std::vector;
@@ -14,11 +15,11 @@ using std::map;
 
 struct BlockCountryCodeInfo
 {
-	BlockCountryCodeInfo( const string& strCountryCode, const string& strRoutingURL, const bool bIsBlock ) 
-		: m_strCountryCode( strCountryCode ), m_strRoutingURL( strRoutingURL ), m_bIsBlock( bIsBlock )
+	BlockCountryCodeInfo(const string& strCountryCode, const string& strRoutingURL, const bool bIsBlock)
+		: m_strCountryCode(strCountryCode), m_strRoutingURL(strRoutingURL), m_bIsBlock(bIsBlock)
 	{
 	}
-	
+
 	string	m_strCountryCode;
 	string	m_strRoutingURL;
 	bool	m_bIsBlock;
@@ -27,8 +28,8 @@ struct BlockCountryCodeInfo
 
 struct IPRange
 {
-	IPRange( const DWORD dwIPFrom, const DWORD dwIPTo ) 
-		: m_dwIPFrom( dwIPFrom ), m_dwIPTo( dwIPTo )
+	IPRange(const DWORD dwIPFrom, const DWORD dwIPTo)
+		: m_dwIPFrom(dwIPFrom), m_dwIPTo(dwIPTo)
 	{
 	}
 
@@ -38,11 +39,11 @@ struct IPRange
 
 struct CustomIP : public IPRange
 {
-	CustomIP( const DWORD dwIPFrom, const DWORD dwIPTo, const bool bIsBlock, const string& strCountryCode3, const string& strComment ) 
-		: IPRange( dwIPFrom, dwIPTo ), m_strCountryCode3( strCountryCode3 ), m_strComment( strComment ), m_bIsBlock( bIsBlock )
+	CustomIP(const DWORD dwIPFrom, const DWORD dwIPTo, const bool bIsBlock, const string& strCountryCode3, const string& strComment)
+		: IPRange(dwIPFrom, dwIPTo), m_strCountryCode3(strCountryCode3), m_strComment(strComment), m_bIsBlock(bIsBlock)
 	{
 	}
-	
+
 	bool	m_bIsBlock;
 	string	m_strCountryCode3;
 	string	m_strComment;
@@ -51,8 +52,8 @@ struct CustomIP : public IPRange
 
 struct IPtoCountry : public IPRange
 {
-	IPtoCountry( const DWORD dwIPFrom, const DWORD dwIPTo, const string& strCountryCode3 ) 
-		: IPRange( dwIPFrom, dwIPTo ), m_strCountryCode3( strCountryCode3 )
+	IPtoCountry(const DWORD dwIPFrom, const DWORD dwIPTo, const string& strCountryCode3)
+		: IPRange(dwIPFrom, dwIPTo), m_strCountryCode3(strCountryCode3)
 	{
 	}
 
@@ -69,15 +70,15 @@ typedef map< DWORD, string >			InvalidIPList;
 
 class StrICmp
 {
-public :
-	StrICmp( const string& strSrc ) : m_strSrc( strSrc ) {}
+public:
+	StrICmp(const string& strSrc) : m_strSrc(strSrc) {}
 
-	bool operator () ( const BlockCountryCodeInfo* pBlockCountryCodeInfo )
+	bool operator () (const BlockCountryCodeInfo* pBlockCountryCodeInfo)
 	{
-		return 0 == stricmp( m_strSrc.c_str(), pBlockCountryCodeInfo->m_strCountryCode.c_str() );
+		return 0 == _stricmp(m_strSrc.c_str(), pBlockCountryCodeInfo->m_strCountryCode.c_str());
 	}
 
-private :
+private:
 	StrICmp() {}
 
 	string m_strSrc;
@@ -85,8 +86,8 @@ private :
 
 class SortCmp
 {
-public :
-	bool operator () ( const IPRange* pRange1, const IPRange* pRange2 )
+public:
+	bool operator () (const IPRange* pRange1, const IPRange* pRange2)
 	{
 		return pRange1->m_dwIPFrom < pRange2->m_dwIPFrom;
 	}
@@ -96,19 +97,19 @@ public :
 template <typename T >
 class IPRangeAlgorithm
 {
-public :
+public:
 	IPRangeAlgorithm();
 
-	const int			BinarySearch( const DWORD dwIP, const T& tVector ) const;
-	const int			Search( const DWORD dwIP, const T& tVector ) const;
-	const bool			CheckIsDuplicateRange( const DWORD dwIPFrom, const DWORD dwIPTo, const T& tVector ) const;
-	inline const bool	IsInverse( const DWORD dwIPFrom, const DWORD dwIPTo ) { return dwIPFrom > dwIPTo; }
-	const bool			IsLast( const DWORD dwIPFrom, const T& tVector ) const;
-	void				SortIncrease( T& tVector );
-	const int			MakeEmptyBlock( const DWORD dwInsertIP, T& tVector );
+	const int			BinarySearch(const DWORD dwIP, const T& tVector) const;
+	const int			Search(const DWORD dwIP, const T& tVector) const;
+	const bool			CheckIsDuplicateRange(const DWORD dwIPFrom, const DWORD dwIPTo, const T& tVector) const;
+	inline const bool	IsInverse(const DWORD dwIPFrom, const DWORD dwIPTo) { return dwIPFrom > dwIPTo; }
+	const bool			IsLast(const DWORD dwIPFrom, const T& tVector) const;
+	void				SortIncrease(T& tVector);
+	const int			MakeEmptyBlock(const DWORD dwInsertIP, T& tVector);
 
 #ifdef _FILTER_TEST
-private :
+private:
 	DWORD m_dwTraceCount;
 	DWORD m_dwMaxTraceCount;
 #endif
@@ -121,58 +122,58 @@ public: // Common
 	MCountryFilter(void);
 	virtual ~MCountryFilter(void);
 
-	bool Create( BlockCountryCodeList& rfBlockCountryCodeList, 
-				 IPtoCountryList& rfIPtoCountryList,
-				 CustomIPList& rfCustomIPList );
+	bool Create(BlockCountryCodeList& rfBlockCountryCodeList,
+		IPtoCountryList& rfIPtoCountryList,
+		CustomIPList& rfCustomIPList);
 
-	bool Update( BlockCountryCodeList& rfBlockCountryCodeList, 
-				 IPtoCountryList& rfIPtoCountryList,
-				 CustomIPList& rfCustomIPList );
+	bool Update(BlockCountryCodeList& rfBlockCountryCodeList,
+		IPtoCountryList& rfIPtoCountryList,
+		CustomIPList& rfCustomIPList);
 
-	DWORD GetLastUpdatedTime()						{ return m_dwLastUpdatedTime; }
-	void SetLastUpdatedTime( const DWORD dwTime )	{ m_dwLastUpdatedTime = dwTime; }
+	DWORD GetLastUpdatedTime() const { return m_dwLastUpdatedTime; }
+	void SetLastUpdatedTime(const DWORD dwTime) { m_dwLastUpdatedTime = dwTime; }
 
-	const BlockCountryCodeList&	GetBlockCountryCodeList() const { return m_BlockCountryCodeList; }
-	const IPtoCountryList&		GetIPtoCountryList() const		{ return m_IPtoCountryList; }
-	const CustomIPList&			GetCustomIPList() const			{ return m_CustomIPList; }
+	const BlockCountryCodeList& GetBlockCountryCodeList() const { return m_BlockCountryCodeList; }
+	const IPtoCountryList& GetIPtoCountryList() const { return m_IPtoCountryList; }
+	const CustomIPList& GetCustomIPList() const { return m_CustomIPList; }
 
 	void ReleaseCountryCode();
 	void ReleaseBlockCountryCode();
 	void ReleaseCustomIP();
 
-public : // IPtoCountry
-	bool AddIPtoCountry( const DWORD dwIPFrom, const DWORD dwIPTo, const string& strCode );
-	bool GetIPCountryCode( const string& strIP, string& strCountryCode );
-	bool AddInvalidIP( const DWORD dwIP, const string& strIP );
-	bool InitIPtoCountryList( IPtoCountryList& rfIPtoCountryList );
+public: // IPtoCountry
+	bool AddIPtoCountry(const DWORD dwIPFrom, const DWORD dwIPTo, const string& strCode);
+	bool GetIPCountryCode(const string& strIP, string& strCountryCode);
+	bool AddInvalidIP(const DWORD dwIP, const string& strIP);
+	bool InitIPtoCountryList(IPtoCountryList& rfIPtoCountryList);
 	// IPtoCountry
 
-public : // BlockCountryCode
-	bool IsNotBlockCode( const string& strCountryCode, string& strRoutingURL );
-	bool InitBlockCountryCodeList( BlockCountryCodeList& rfBlockCountryCodeList );
+public: // BlockCountryCode
+	bool IsNotBlockCode(const string& strCountryCode, string& strRoutingURL);
+	bool InitBlockCountryCodeList(BlockCountryCodeList& rfBlockCountryCodeList);
 	// BlockCountryCode
 
-public : // CustomIP
-	bool AddCustomIP( const DWORD dwIPFrom, const DWORD dwIPTo, const bool bIsBlock, const string& strCountryCode3, const string& strComment );
-	bool GetCustomIP( const string& strIP, bool& bIsBlock, string& strCountryCode3, string& strComment );
-	bool InitCustomIPList( CustomIPList& rfCustomIPList );
+public: // CustomIP
+	bool AddCustomIP(const DWORD dwIPFrom, const DWORD dwIPTo, const bool bIsBlock, const string& strCountryCode3, const string& strComment);
+	bool GetCustomIP(const string& strIP, bool& bIsBlock, string& strCountryCode3, string& strComment);
+	bool InitCustomIPList(CustomIPList& rfCustomIPList);
 	// CustomIP
 
-private : // Common
-	const DWORD inet_aton( const string& strIP );
+private: // Common
+	const DWORD inet_aton(const string& strIP);
 	// Common
 
-private : // IPtoCountry
+private: // IPtoCountry
 	// IPtoCountry
 
-private : // BlockCountryCode
-	bool IsNotBlockCode( const string& strCountryCode, string& strRoutingURL, BlockCountryCodeList& bcil );
+private: // BlockCountryCode
+	bool IsNotBlockCode(const string& strCountryCode, string& strRoutingURL, BlockCountryCodeList& bcil);
 	// BlockCountryCode
 
-private : // CustomIP
+private: // CustomIP
 	// CustomIP
 
-private :
+private:
 	BlockCountryCodeList	m_BlockCountryCodeList;
 	IPtoCountryList			m_IPtoCountryList;
 	CustomIPList			m_CustomIPList;
@@ -185,4 +186,4 @@ private :
 };
 
 
-bool SplitStrIP_Filter( const string& strIP, vector<BYTE>& vIP );
+bool SplitStrIP_Filter(const string& strIP, vector<BYTE>& vIP);

@@ -18,16 +18,17 @@
 
 bool MEmblemMgr::InitDefaut()
 {
-	if(GetMyDocumentsPath(m_szEmblemBaseDir)) {
+	if (GetMyDocumentsPath(m_szEmblemBaseDir)) {
 		// EmblemBaseFolder
 		strcat(m_szEmblemBaseDir, GUNZ_FOLDER);
 		strcat(m_szEmblemBaseDir, MPATH_EMBLEMFOLDER);
-		
+
 		// EmblemDataFile
 		strcpy(m_szEmblemDataFile, m_szEmblemBaseDir);
 		strcat(m_szEmblemDataFile, MPATH_EMBLEMFILE);
 		return true;
-	} else {
+	}
+	else {
 		return false;
 	}
 }
@@ -54,10 +55,10 @@ void MEmblemMgr::Destroy()
 
 bool MEmblemMgr::CreateCache()
 {
-	TCHAR szEmblemPath[MAX_PATH]="";
-	TCHAR szPath[MAX_PATH]="";
+	TCHAR szEmblemPath[MAX_PATH] = "";
+	TCHAR szPath[MAX_PATH] = "";
 
-	if(GetMyDocumentsPath(szPath)) {
+	if (GetMyDocumentsPath(szPath)) {
 		strcpy(szEmblemPath, szPath);
 		strcat(szEmblemPath, GUNZ_FOLDER);
 		CreatePath(szEmblemPath);
@@ -66,7 +67,8 @@ bool MEmblemMgr::CreateCache()
 		CreatePath(szEmblemPath);
 
 		strcat(szEmblemPath, MPATH_EMBLEMFILE);
-	} else {
+	}
+	else {
 		return false;
 	}
 
@@ -90,7 +92,7 @@ bool MEmblemMgr::LoadCache()
 		return false;
 	}
 
-	MXmlElement rootElement,emblemElement,childElement;
+	MXmlElement rootElement, emblemElement, childElement;
 	char szTagName[256];
 
 	rootElement = xmlDoc.GetDocumentElement();
@@ -105,7 +107,7 @@ bool MEmblemMgr::LoadCache()
 		if (!strcmp(szTagName, MTOK_EMBLEM))
 		{
 			int nCLID = -1;
-			char szURL[256]="";
+			char szURL[256] = "";
 			int nChecksum = -1;
 			time_t tmLastUsed = 0;
 
@@ -148,14 +150,15 @@ bool MEmblemMgr::PrepareCache()
 {
 	if (LoadCache()) {
 		return true;
-	} else {
+	}
+	else {
 		return CreateCache();
 	}
 }
 
 
 static bool CompareEmblem(MEmblemNode* left, MEmblemNode* right)
-{ 
+{
 	double fDiff = difftime(left->GetTimeLastUsed(), right->GetTimeLastUsed());
 
 	return 0.0 < fDiff;
@@ -164,58 +167,71 @@ static bool CompareEmblem(MEmblemNode* left, MEmblemNode* right)
 bool MEmblemMgr::SaveCache()
 {
 	list<MEmblemNode*> sortedQueue;
-	for (MEmblemMap::iterator i=m_EmblemMap.begin(); i!=m_EmblemMap.end(); i++) {
+	for (MEmblemMap::iterator i = m_EmblemMap.begin(); i != m_EmblemMap.end(); i++) {
 		MEmblemNode* pNode = (*i).second;
 		sortedQueue.push_back(pNode);
 	}
 	sortedQueue.sort(CompareEmblem);
 
 	MXmlDocument	xmlDoc;
-	char szBuf[256]="";
+	char szBuf[256] = "";
 
 	xmlDoc.Create();
 	xmlDoc.CreateProcessingInstruction();
 
 	MXmlElement	rootElement;
-
-	rootElement=xmlDoc.CreateElement("XML");
-
+	rootElement = xmlDoc.CreateElement("XML");
 	xmlDoc.AppendChild(rootElement);
 
 	int nCount = 0;
-	for (list<MEmblemNode*>::iterator i=sortedQueue.begin(); i!=sortedQueue.end(); i++) {
+	for (list<MEmblemNode*>::iterator i = sortedQueue.begin(); i != sortedQueue.end(); i++) {
 		MEmblemNode* pNode = (*i);
 
 		rootElement.AppendText("\n\t");
 
-		MXmlElement	emblemElement = rootElement.CreateChildElement(MTOK_EMBLEM);
+		MXmlElement emblemElement = rootElement.CreateChildElement(MTOK_EMBLEM);
 		emblemElement.AppendText("\n\t\t");
 
-		MXmlElement	childElement;
+		MXmlElement childElement;
 
-		sprintf(szBuf,"%u", pNode->GetCLID());
+		// Store CLID
+		snprintf(szBuf, sizeof(szBuf), "%u", pNode->GetCLID());
 		childElement = emblemElement.CreateChildElement(MTOK_EMBLEM_CLID);
 		childElement.SetContents(szBuf);
 
 		emblemElement.AppendText("\n\t\t");
 
+		// Store URL
 		childElement = emblemElement.CreateChildElement(MTOK_EMBLEM_URL);
 		childElement.SetContents(pNode->GetURL());
 
 		emblemElement.AppendText("\n\t\t");
 
-		sprintf(szBuf,"%u", pNode->GetChecksum());
+		// Store Checksum
+		snprintf(szBuf, sizeof(szBuf), "%u", pNode->GetChecksum());
 		childElement = emblemElement.CreateChildElement(MTOK_EMBLEM_CHECKSUM);
 		childElement.SetContents(szBuf);
 
 		emblemElement.AppendText("\n\t\t");
 
-		sprintf(szBuf,"%u", pNode->GetTimeLastUsed());
+		// Convert and format the last used time
+		time_t lastUsedTime = static_cast<time_t>(pNode->GetTimeLastUsed());
+		struct tm* pTimeInfo = localtime(&lastUsedTime);
+		if (pTimeInfo != nullptr) {
+			// Format the time (e.g., "%Y-%m-%d %H:%M:%S")
+			strftime(szBuf, sizeof(szBuf), "%Y-%m-%d %H:%M:%S", pTimeInfo);
+		}
+		else {
+			// Handle error if conversion to local time fails
+			snprintf(szBuf, sizeof(szBuf), "Invalid time");
+		}
+
 		childElement = emblemElement.CreateChildElement(MTOK_EMBLEM_TIMELASTUSED);
 		childElement.SetContents(szBuf);
 
 		emblemElement.AppendText("\n\t");
 
+		// Limit to 1000 entries
 		if (++nCount >= 1000)
 			break;
 	}
@@ -234,7 +250,7 @@ bool MEmblemMgr::SaveCache()
 
 void MEmblemMgr::ClearCache()
 {
-	while(!m_EmblemMap.empty()) {
+	while (!m_EmblemMap.empty()) {
 		MEmblemMap::iterator itor = m_EmblemMap.begin();
 		delete (*itor).second;
 		m_EmblemMap.erase(itor);
@@ -244,7 +260,7 @@ void MEmblemMgr::ClearCache()
 bool MEmblemMgr::GetEmblemPath(char* pszFilePath, const char* pszURL)
 {
 	//// Parse URL //////////////////
-	#define URLPATH_LEN	256
+#define URLPATH_LEN	256
 	char szFileName[URLPATH_LEN] = "";
 
 	URL_COMPONENTS uc;
@@ -273,7 +289,7 @@ bool MEmblemMgr::GetEmblemPath(char* pszFilePath, const char* pszURL)
 bool MEmblemMgr::GetEmblemPathByCLID(unsigned int nCLID, char* poutFilePath)
 {
 	MEmblemMap::iterator i = m_EmblemMap.find(nCLID);
-	if (i==m_EmblemMap.end())
+	if (i == m_EmblemMap.end())
 		return false;
 
 	MEmblemNode* pEmblem = (*i).second;
@@ -283,14 +299,16 @@ bool MEmblemMgr::GetEmblemPathByCLID(unsigned int nCLID, char* poutFilePath)
 bool MEmblemMgr::CheckEmblem(unsigned int nCLID, unsigned long nChecksum)
 {
 	MEmblemMap::iterator i = m_EmblemMap.find(nCLID);
-	if (i==m_EmblemMap.end()) {
+	if (i == m_EmblemMap.end()) {
 		return false;
-	} else {
+	}
+	else {
 		MEmblemNode* pEmblem = (*i).second;
 		if (pEmblem->GetChecksum() == nChecksum) {
 			pEmblem->UpdateTimeLastUsed();
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}
@@ -304,12 +322,12 @@ void MEmblemMgr::PostDownload(unsigned int nCLID, unsigned int nChecksum, const 
 bool MEmblemMgr::RegisterEmblem(unsigned int nCLID, const char* pszURL, unsigned long nChecksum, time_t tmLastUsed)
 {
 	MEmblemMap::iterator i = m_EmblemMap.find(nCLID);
-	if (i!=m_EmblemMap.end()) {
+	if (i != m_EmblemMap.end()) {
 		delete (*i).second;
 		m_EmblemMap.erase(i);
 	}
 
-	char szFilePath[_MAX_DIR]="";
+	char szFilePath[_MAX_DIR] = "";
 	if (!GetEmblemPath(szFilePath, pszURL))
 		return false;
 
@@ -326,7 +344,7 @@ bool MEmblemMgr::RegisterEmblem(unsigned int nCLID, const char* pszURL, unsigned
 
 void MEmblemMgr::NotifyDownloadDone(unsigned int nCLID, const char* pszURL)
 {
-	char szPath[_MAX_DIR]="";
+	char szPath[_MAX_DIR] = "";
 	GetEmblemPathByCLID(nCLID, szPath);
 
 	ZPostClanEmblemReady(nCLID, const_cast<char*>(pszURL));
@@ -339,7 +357,8 @@ bool MEmblemMgr::ProcessEmblem(unsigned int nCLID, const char* pszURL, unsigned 
 	if (CheckEmblem(nCLID, nChecksum)) {
 		m_nCachedRequest++;
 		return true;
-	} else {
+	}
+	else {
 		PostDownload(nCLID, nChecksum, pszURL);
 		return false;
 	}
@@ -369,16 +388,16 @@ void MEmblemMgr::Tick(unsigned long nTick)
 		SetSaveFlag(true);
 		SetLastSavedTick(nTick);
 	}
-/*	AUTOSAVE ºÀÀÎ
-	if (CheckSaveFlag() && (nTick - GetLastSavedTick() > MTICK_EMBLEM_SAVE_THRESHOLD))
-	{
-		SaveCache();
-		SetLastSavedTick(nTick);
+	/*	AUTOSAVE ºÀÀÎ
+		if (CheckSaveFlag() && (nTick - GetLastSavedTick() > MTICK_EMBLEM_SAVE_THRESHOLD))
+		{
+			SaveCache();
+			SetLastSavedTick(nTick);
 
-		// Logs
-		char szLog[128];
-		sprintf(szLog, "EmblemCache> Cached Emblem : %d/%d \n", 
-				GetCachedRequest(), GetTotalRequest());
-		OutputDebugString(szLog);
-	} */
+			// Logs
+			char szLog[128];
+			sprintf(szLog, "EmblemCache> Cached Emblem : %d/%d \n",
+					GetCachedRequest(), GetTotalRequest());
+			OutputDebugString(szLog);
+		} */
 }

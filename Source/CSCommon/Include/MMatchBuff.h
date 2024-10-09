@@ -119,28 +119,34 @@ inline MMatchBuffDescMgr* MGetMatchBuffDescMgr() { return MMatchBuffDescMgr::Get
 
 class MMatchBuff
 {
-protected:	
+protected:
 	MUID	m_uidBuff;
-
 	int		m_nBuffID;
-	int		m_nRegTime;	
+	int		m_nRegTime;
 	int		m_nBuffPeriodRemainder;
-
 	MMatchBuffDesc* m_pBuffDesc;
 
 public:
-	MMatchBuff(){}
-	~MMatchBuff(){}
+	// Default constructor, initializes members
+	MMatchBuff()
+		: m_uidBuff(), m_nBuffID(0), m_nRegTime(0), m_nBuffPeriodRemainder(0), m_pBuffDesc(nullptr) {}
 
+	~MMatchBuff() {}
+
+	// Resets the buffer (you may want to define what Reset does in your implementation)
 	virtual void Reset();
+
+	// Sets the buffer with new values
 	virtual bool Set(MUID& uidBuff, int nBuffID, int nRegTime, int nBuffPeriodRemainder);
 
+	// Checks if the buff is expired
 	bool IsExpired(int nGlobalTick);
 
-	MUID GetBuffUID()				{ return m_uidBuff; }
-	int  GetBuffID()				{ return m_pBuffDesc == NULL ? 0 : m_pBuffDesc->m_nBuffID; }
-	int  GetBuffPeriod()			{ return m_pBuffDesc == NULL ? 0 : m_pBuffDesc->m_nBuffPeriod.Ref(); }	
-	
+	// Getters
+	MUID GetBuffUID() const { return m_uidBuff; }
+	int  GetBuffID() const { return m_pBuffDesc == nullptr ? 0 : m_pBuffDesc->m_nBuffID; }
+	int  GetBuffPeriod() const { return m_pBuffDesc == nullptr ? 0 : m_pBuffDesc->m_nBuffPeriod.Ref(); }
+
 	int  GetBuffPeriodRemainder(int nGlobalTick);
 };
 

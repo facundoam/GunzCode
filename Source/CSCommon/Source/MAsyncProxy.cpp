@@ -5,15 +5,17 @@
 #include "MAsyncProxy.h"
 #include "MMatchConfig.h"
 #include "MCrashDump.h"
+#include <algorithm>
 #ifndef _PUBLISH
-	#include "MProcessController.h"
+#include "MProcessController.h"
 #endif
 
 MAsyncProxy::MAsyncProxy()
 {
 	m_nThreadCount = 0;
-	BYTE nInitVal = (BYTE)(INVALID_HANDLE_VALUE);
-	FillMemory(m_ThreadPool, sizeof(HANDLE)*MAX_THREADPOOL_COUNT, nInitVal);
+
+	// Initialize the thread pool array with INVALID_HANDLE_VALUE
+	std::fill(m_ThreadPool, m_ThreadPool + MAX_THREADPOOL_COUNT, INVALID_HANDLE_VALUE);
 }
 
 MAsyncProxy::~MAsyncProxy()
@@ -28,8 +30,8 @@ bool MAsyncProxy::Create(int nThreadCount)
 	InitializeCriticalSection(&m_csCrashDump);
 
 	nThreadCount = __min(nThreadCount, MAX_THREADPOOL_COUNT);
-	for (int i=0; i<nThreadCount; i++) {
-		DWORD dwThreadId=0;
+	for (int i = 0; i < nThreadCount; i++) {
+		DWORD dwThreadId = 0;
 		HANDLE hThread = CreateThread(NULL, 0, WorkerThread, this, 0, &dwThreadId);
 		if (hThread == NULL)
 			return false;
@@ -41,19 +43,19 @@ bool MAsyncProxy::Create(int nThreadCount)
 
 void MAsyncProxy::Destroy()
 {
-	for (int i=0; i<m_nThreadCount; i++) {
+	for (int i = 0; i < m_nThreadCount; i++) {
 		SetEvent(GetEventShutdown());
 		Sleep(100);
 	}
 
-	WaitForMultipleObjects(m_nThreadCount,  m_ThreadPool, TRUE, 2000);
+	WaitForMultipleObjects(m_nThreadCount, m_ThreadPool, TRUE, 2000);
 
-	for (int i=0; i<MAX_THREADPOOL_COUNT; i++) {
+	for (int i = 0; i < MAX_THREADPOOL_COUNT; i++) {
 		if (INVALID_HANDLE_VALUE != m_ThreadPool[i]) {
 			TerminateThread(m_ThreadPool[i], 0);
 			CloseHandle(m_ThreadPool[i]);
 			m_ThreadPool[i] = INVALID_HANDLE_VALUE;
-			m_nThreadCount--;			
+			m_nThreadCount--;
 		}
 	}
 
@@ -66,8 +68,8 @@ void MAsyncProxy::Destroy()
 void MAsyncProxy::PostJob(MAsyncJob* pJob)
 {
 	m_WaitQueue.Lock();
-		pJob->SetPostTime(timeGetTime());
-		m_WaitQueue.AddUnsafe(pJob);	
+	pJob->SetPostTime(timeGetTime());
+	m_WaitQueue.AddUnsafe(pJob);
 	m_WaitQueue.Unlock();
 
 	SetEvent(GetEventFetchJob());
@@ -77,17 +79,18 @@ DWORD WINAPI MAsyncProxy::WorkerThread(LPVOID pJobContext)
 {
 	MAsyncProxy* pProxy = (MAsyncProxy*)pJobContext;
 
-	__try{
+	__try {
 		pProxy->OnRun();
-	} __except(pProxy->CrashDump(GetExceptionInformation())) 
+	}
+	__except (pProxy->CrashDump(GetExceptionInformation()))
 	{
 		// 서버만 실행하도록 하기위함이다.
-		#ifndef _PUBLISH
-			char szFileName[_MAX_DIR];
-			GetModuleFileName(NULL, szFileName, _MAX_DIR);
-			HANDLE hProcess = MProcessController::OpenProcessHandleByFilePath(szFileName);
-			TerminateProcess(hProcess, 0);
-		#endif
+#ifndef _PUBLISH
+		char szFileName[_MAX_DIR];
+		GetModuleFileName(NULL, szFileName, _MAX_DIR);
+		HANDLE hProcess = MProcessController::OpenProcessHandleByFilePath(szFileName);
+		TerminateProcess(hProcess, 0);
+#endif
 	}
 
 	ExitThread(0);
@@ -98,9 +101,9 @@ void MAsyncProxy::OnRun()
 {
 	MMatchDBMgr	DatabaseMgr;
 
-	CString str = DatabaseMgr.BuildDSNString(MGetServerConfig()->GetDB_DNS(), 
-		                                      MGetServerConfig()->GetDB_UserName(), 
-											  MGetServerConfig()->GetDB_Password());
+	CString str = DatabaseMgr.BuildDSNString(MGetServerConfig()->GetDB_DNS(),
+		MGetServerConfig()->GetDB_UserName(),
+		MGetServerConfig()->GetDB_Password());
 	if (!DatabaseMgr.Connect())
 	{
 		char szLog[32];
@@ -111,20 +114,20 @@ void MAsyncProxy::OnRun()
 		MessageBox(NULL, szLog, "MatchServer DB Error", MB_OK);
 	}
 
-	#define MASYNC_EVENTARRAY_SIZE	2
+#define MASYNC_EVENTARRAY_SIZE	2
 	HANDLE EventArray[MASYNC_EVENTARRAY_SIZE];
 
-	ZeroMemory(EventArray, sizeof(HANDLE)*MASYNC_EVENTARRAY_SIZE);
+	ZeroMemory(EventArray, sizeof(HANDLE) * MASYNC_EVENTARRAY_SIZE);
 	WORD wEventCount = 0;
 
 	EventArray[wEventCount++] = GetEventShutdown();
 	EventArray[wEventCount++] = GetEventFetchJob();
 
 	bool bShutdown = false;
-	while(!bShutdown) {
-		#define TICK_ASYNCPROXY_LIVECHECK	1000
-		DWORD dwResult = WaitForMultipleObjects(wEventCount, EventArray, 
-												FALSE, TICK_ASYNCPROXY_LIVECHECK);
+	while (!bShutdown) {
+#define TICK_ASYNCPROXY_LIVECHECK	1000
+		DWORD dwResult = WaitForMultipleObjects(wEventCount, EventArray,
+			FALSE, TICK_ASYNCPROXY_LIVECHECK);
 		if (WAIT_TIMEOUT == dwResult) {
 			if (m_WaitQueue.GetCount() > 0) {
 				SetEvent(GetEventFetchJob());
@@ -132,32 +135,32 @@ void MAsyncProxy::OnRun()
 			continue;
 		}
 
-		switch(dwResult) {
+		switch (dwResult) {
 		case WAIT_OBJECT_0:		// Shutdown
-			{
-				bShutdown = true;
-			}
-			break;
+		{
+			bShutdown = true;
+		}
+		break;
 		case WAIT_OBJECT_0 + 1:	// Fetch Job
-			{
-				m_WaitQueue.Lock();
-					MAsyncJob* pJob = m_WaitQueue.GetJobUnsafe();
-				m_WaitQueue.Unlock();
+		{
+			m_WaitQueue.Lock();
+			MAsyncJob* pJob = m_WaitQueue.GetJobUnsafe();
+			m_WaitQueue.Unlock();
 
-				if (pJob) {
-					pJob->Run(&DatabaseMgr);
-					pJob->SetFinishTime(timeGetTime());
+			if (pJob) {
+				pJob->Run(&DatabaseMgr);
+				pJob->SetFinishTime(timeGetTime());
 
-					m_ResultQueue.Lock();
-						m_ResultQueue.AddUnsafe(pJob);
-					m_ResultQueue.Unlock();
-				}
-
-				if (m_WaitQueue.GetCount() > 0) {
-					SetEvent(GetEventFetchJob());
-				}
+				m_ResultQueue.Lock();
+				m_ResultQueue.AddUnsafe(pJob);
+				m_ResultQueue.Unlock();
 			}
-			break;
+
+			if (m_WaitQueue.GetCount() > 0) {
+				SetEvent(GetEventFetchJob());
+			}
+		}
+		break;
 		};	// switch
 	};	// while
 }
@@ -172,7 +175,7 @@ DWORD MAsyncProxy::CrashDump(PEXCEPTION_POINTERS ExceptionInfo)
 		CreateDirectory("Log", NULL);
 
 	time_t		tClock;
-	struct tm*	ptmTime;
+	struct tm* ptmTime;
 
 	time(&tClock);
 	ptmTime = localtime(&tClock);
@@ -180,15 +183,15 @@ DWORD MAsyncProxy::CrashDump(PEXCEPTION_POINTERS ExceptionInfo)
 	char szFileName[_MAX_DIR];
 
 	int nFooter = 1;
-	while(TRUE) {
-		sprintf(szFileName, "Log/MAsyncProxy_%02d-%02d-%02d-%d.dmp", 
-			ptmTime->tm_year+1900, ptmTime->tm_mon+1, ptmTime->tm_mday, nFooter);
+	while (TRUE) {
+		sprintf(szFileName, "Log/MAsyncProxy_%02d-%02d-%02d-%d.dmp",
+			ptmTime->tm_year + 1900, ptmTime->tm_mon + 1, ptmTime->tm_mday, nFooter);
 
 		if (PathFileExists(szFileName) == FALSE)
 			break;
 
 		nFooter++;
-		if (nFooter > 100) 
+		if (nFooter > 100)
 		{
 			LeaveCriticalSection(&m_csCrashDump);
 			return false;

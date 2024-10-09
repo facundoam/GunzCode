@@ -8,20 +8,20 @@
 #include "CfgFile.h"
 
 enum TOKENTYPE {
-	TINVALID	= -1,
-	TINTEGER	= 0,	// 절대 에디트 하지 말것!!!
-	TREAL		= 1,	// 절대 에디트 하지 말것!!!
-	TSTRING		= 2,	// 절대 에디트 하지 말것!!!
-	TSYMBOL		= 3,
-	TEQUAL		= 4,	// =
-	TUNARY		= 5,	// -
-	TSECTION	= 6,	// !
-	TEOF		= 127
+	TINVALID = -1,
+	TINTEGER = 0,	// 절대 에디트 하지 말것!!!
+	TREAL = 1,	// 절대 에디트 하지 말것!!!
+	TSTRING = 2,	// 절대 에디트 하지 말것!!!
+	TSYMBOL = 3,
+	TEQUAL = 4,	// =
+	TUNARY = 5,	// -
+	TSECTION = 6,	// !
+	TEOF = 127
 };
 
 struct _reserved_word {
 	TOKENTYPE	val;
-	char*		szText;
+	char* szText;
 } rwords[] = {
 	{ TINVALID, NULL }
 };
@@ -31,20 +31,22 @@ static char *fold( char *s )
 	int i;
 	for(i=0; s[i]!='\0'; i++)
 		if(isupper(s[i])) s[i] = s[i] + ('a'-'A');
-    
+
 	return(s);
 }
 */
 
 char CfgFile::Input()
 {
-	if(m_pbptr > -1){
+	if (m_pbptr > -1) {
 		return(m_pbbuf[m_pbptr--]);
-	} else {
-		if(m_ibuf[m_iptr] == '\0') ReadLine();
-		if(m_ibuf[m_iptr]!='\0'){
+	}
+	else {
+		if (m_ibuf[m_iptr] == '\0') ReadLine();
+		if (m_ibuf[m_iptr] != '\0') {
 			return(m_ibuf[m_iptr++]);
-		} else {
+		}
+		else {
 			return 0;
 		}
 	}
@@ -53,15 +55,15 @@ char CfgFile::Input()
 
 void CfgFile::ReadLine()
 {
-    char c;
+	char c;
 
-    m_iptr = 0;
-    for(c=fgetc(m_FilePointer); c!='\n' && c!=EOF; c=fgetc(m_FilePointer)) m_ibuf[m_iptr++] = c;
-    
+	m_iptr = 0;
+	for (c = fgetc(m_FilePointer); c != '\n' && c != EOF; c = fgetc(m_FilePointer)) m_ibuf[m_iptr++] = c;
+
 	m_ibuf[m_iptr++] = c;
-    m_ibuf[m_iptr++] = '\0';
-    m_iptr = 0;
-	m_nLineNum ++;
+	m_ibuf[m_iptr++] = '\0';
+	m_iptr = 0;
+	m_nLineNum++;
 }
 
 void CfgFile::Unput(char c)
@@ -71,85 +73,93 @@ void CfgFile::Unput(char c)
 
 CFGTOKEN CfgFile::Scan()
 {
-	CFGTOKEN ret;	
-    int i;
-	char c;	
+	CFGTOKEN ret;
+	int i;
+	char c;
 
 	ret.id = TINVALID;
-	
+
 loop:
 	c = Input();
-	if(c=='\t' || c==' '){
+	if (c == '\t' || c == ' ') {
 		goto loop;
-	} else if(c=='\n' || c==';'){
+	}
+	else if (c == '\n' || c == ';') {
 		ReadLine();
 		goto loop;
-	} else if(isdigit(c) || c=='.'){
+	}
+	else if (isdigit(c) || c == '.') {
 		m_nTextLen = 0;
-		
-		if( GetDigit(c) > 0 ) ret.id = TREAL; else ret.id = TINTEGER;
-		
-		if(m_nTextLen == 1 && m_szText[0]=='.') goto reterr; 
-		if(m_nTextLen == 0) goto reterr;
+
+		if (GetDigit(c) > 0) ret.id = TREAL; else ret.id = TINTEGER;
+
+		if (m_nTextLen == 1 && m_szText[0] == '.') goto reterr;
+		if (m_nTextLen == 0) goto reterr;
 
 		Gather('\0');
 
-		if( ret.id == TINTEGER ){
+		if (ret.id == TINTEGER) {
 			ret.v.nval = atoi(m_szText);
-		} else if( ret.id == TREAL ){
+		}
+		else if (ret.id == TREAL) {
 			ret.v.fval = (float)atof(m_szText);
 		}
 		return ret;
-reterr:
+	reterr:
 		ret.id = TINVALID;
 		return ret;
 	}
 
 	// SYMBOL
 
-    else if( isalpha(c) ){
-		m_nTextLen=0;
+	else if (isalpha(c)) {
+		m_nTextLen = 0;
 		Gather(c);
-		for( c = Input(); isalpha(c) || isdigit(c); c=Input() ) Gather(c);
+		for (c = Input(); isalpha(c) || isdigit(c); c = Input()) Gather(c);
 		Unput(c);
 		Gather('\0');
 
-		for( i=0; rwords[i].val != TINVALID; i++ ){
-			if( strcmp(m_szText, rwords[i].szText) == 0 ){
+		for (i = 0; rwords[i].val != TINVALID; i++) {
+			if (strcmp(m_szText, rwords[i].szText) == 0) {
 				break;
 			}
 		}
-		
-		if( rwords[i].val != TINVALID ){
+
+		if (rwords[i].val != TINVALID) {
 			ret.id = rwords[i].val;
 			return ret;
-		} else {
+		}
+		else {
 			ret.id = TSYMBOL;
-			ret.v.szval = strdup(m_szText);
+			ret.v.szval = _strdup(m_szText);
 			return ret;
 		}
 	}
 
 	// STRING CONSTANT
-    else if(c == '\"'){
+	else if (c == '\"') {
 		m_nTextLen = 0;
-		for( c = Input(); ; c=Input() ){
-			if(c == '\"'){
-				if((c=Input()) == '\"'){					
+		for (c = Input(); ; c = Input()) {
+			if (c == '\"') {
+				if ((c = Input()) == '\"') {
 					Gather('\\');
 					Gather('\"');
-				} else {
+				}
+				else {
 					break;
 				}
-			} else if(c == '\\'){
-				c=Input();
+			}
+			else if (c == '\\') {
+				c = Input();
 				Gather(c);
-				if(c == '\n') ReadLine();
-			} else if(c == '\n'){
+				if (c == '\n') ReadLine();
+			}
+			else if (c == '\n') {
 				ret.id = TINVALID;
 				ReadLine();
 				return ret;
-			} else {
+			}
+			else {
 				Gather(c);
 			}
 		}
@@ -157,15 +167,19 @@ reterr:
 		Gather('\0');
 
 		ret.id = TSTRING;
-		ret.v.szval = strdup(m_szText);
+		ret.v.szval = _strdup(m_szText);
 		return ret;
-    } else if(c == '='){
+	}
+	else if (c == '=') {
 		ret.id = TEQUAL;
-	} else if(c == '!'){
+	}
+	else if (c == '!') {
 		ret.id = TSECTION;
-	} else if(c == '-'){
+	}
+	else if (c == '-') {
 		ret.id = TUNARY;
-	} else if(c == EOF){
+	}
+	else if (c == EOF) {
 		ret.id = TEOF;
 	}
 
@@ -174,127 +188,141 @@ reterr:
 
 void CfgFile::FreeToken(PCFGTOKEN token)
 {
-	if( token->id == TSYMBOL || token->id == TSTRING ){
-		if( token->v.szval ){
+	if (token->id == TSYMBOL || token->id == TSTRING) {
+		if (token->v.szval) {
 			free(token->v.szval);
 			token->v.szval = NULL;
 		}
 	}
 }
 
-int CfgFile::Open(char *filename)
+int CfgFile::Open(char* filename)
 {
-	CFGTOKEN	token;
-	PCFGSECTION	pCurrentSection	= NULL;	
-	PCFGVALUE	pValue = NULL;
-	int			ret				= CFG_NOERROR;
+	CFGTOKEN token;
+	PCFGSECTION pCurrentSection = NULL;
+	PCFGVALUE pValue = NULL;
+	int ret = CFG_NOERROR;
 
-	m_nErrorLine = -1; m_nLineNum = 0;
+	m_nErrorLine = -1;
+	m_nLineNum = 0;
 
-	m_FilePointer = fopen(filename, "r");
-	if(m_FilePointer == NULL) {
-		ret = CFG_OPENFAIL;	
+	// Use _fopen_s() for safer file opening
+	if (fopen_s(&m_FilePointer, filename, "r") != 0 || m_FilePointer == NULL) {
+		ret = CFG_OPENFAIL;
 		goto return_label;
 	}
-	m_iptr = -1; m_pbptr = -1;
+
+	m_iptr = -1;
+	m_pbptr = -1;
 	ReadLine();
 
-	while(1){		
+	while (1) {
 		token = Scan();
 
-		if( token.id == TEOF ){
+		if (token.id == TEOF) {
 			goto return_label;
 		}
-		if( token.id == TINVALID ){
+		if (token.id == TINVALID) {
 			ret = CFG_INVALID;
 			goto return_label;
 		}
 
-		switch(token.id){
-		case TINTEGER :
-		case TREAL :
-		case TSTRING :
-			if( pCurrentSection == NULL ){	// 만일 NULL이라면...
+		switch (token.id) {
+		case TINTEGER:
+		case TREAL:
+		case TSTRING:
+			if (pCurrentSection == NULL) {
 				pCurrentSection = new CFGSECTION("@GLOBAL");
-				aSectionList.Add( pCurrentSection );
+				aSectionList.Add(pCurrentSection);
 			}
 			pValue = new CFGVALUE("<unnamed>");
 
-			switch( token.id )
-			{
-			case TINTEGER:	pValue->SetInteger(token.v.nval); break;
-			case TREAL:		pValue->SetReal(token.v.fval); break;
-			case TSTRING:	pValue->SetString(token.v.szval); break;
+			switch (token.id) {
+			case TINTEGER:
+				pValue->SetInteger(token.v.nval);
+				break;
+			case TREAL:
+				pValue->SetReal(token.v.fval);
+				break;
+			case TSTRING:
+				pValue->SetString(token.v.szval);
+				break;
 			}
 
 			pCurrentSection->aValList.Add(pValue);
 			FreeToken(&token);
 			break;
-		case TSYMBOL :
-			{
-				pValue = new CFGVALUE(token.v.szval);
-				FreeToken(&token);
 
-				token = Scan();
-				if(token.id != TEQUAL){
-					ret = CFG_UNEXPECTED;
-					delete pValue;
-					goto return_label;
-				}
+		case TSYMBOL: {
+			pValue = new CFGVALUE(token.v.szval);
+			FreeToken(&token);
 
-				//INSTALL NEW VALUE
-				token = Scan();
-				if(token.id != TINTEGER && token.id != TREAL && token.id != TSTRING){
-					ret = CFG_UNEXPECTED;
-					delete pValue;
-					goto return_label;
-				}
-
-				if( pCurrentSection == NULL ){	// 만일 NULL이라면...
-					pCurrentSection = new CFGSECTION("@GLOBAL");
-					aSectionList.Add( pCurrentSection );
-				}
-				
-				//새로운 값을 추가해넣는다. 
-				pCurrentSection->aValList.Add(pValue);
-				switch( token.id )
-				{
-				case TINTEGER:	pValue->SetInteger(token.v.nval); break;
-				case TREAL:		pValue->SetReal(token.v.fval); break;
-				case TSTRING:	pValue->SetString(token.v.szval); break;
-				}
-
-				FreeToken(&token);
+			token = Scan();
+			if (token.id != TEQUAL) {
+				ret = CFG_UNEXPECTED;
+				delete pValue;
+				goto return_label;
 			}
-			break;
-		case TSECTION :
-			{
-				token = Scan();
-				if( token.id != TSYMBOL ){
-					ret = CFG_UNEXPECTED;
-					goto return_label;
-				}
 
-				// MAKE NEW SECTION & ADD NEW SECTION TO SECTION LIST
-				pCurrentSection = new CFGSECTION(token.v.szval);
+			// INSTALL NEW VALUE
+			token = Scan();
+			if (token.id != TINTEGER && token.id != TREAL && token.id != TSTRING) {
+				ret = CFG_UNEXPECTED;
+				delete pValue;
+				goto return_label;
+			}
+
+			if (pCurrentSection == NULL) {
+				pCurrentSection = new CFGSECTION("@GLOBAL");
 				aSectionList.Add(pCurrentSection);
-				FreeToken(&token);
 			}
+
+			// Add the new value
+			pCurrentSection->aValList.Add(pValue);
+			switch (token.id) {
+			case TINTEGER:
+				pValue->SetInteger(token.v.nval);
+				break;
+			case TREAL:
+				pValue->SetReal(token.v.fval);
+				break;
+			case TSTRING:
+				pValue->SetString(token.v.szval);
+				break;
+			}
+
+			FreeToken(&token);
 			break;
-		default :
+		}
+
+		case TSECTION: {
+			token = Scan();
+			if (token.id != TSYMBOL) {
+				ret = CFG_UNEXPECTED;
+				goto return_label;
+			}
+
+			// Make a new section and add it to the list
+			pCurrentSection = new CFGSECTION(token.v.szval);
+			aSectionList.Add(pCurrentSection);
+			FreeToken(&token);
+			break;
+		}
+
+		default:
 			ret = CFG_UNEXPECTED;
 			goto return_label;
 		}
-		
+
 		FreeToken(&token);
 	}
 
 return_label:
-	if( ret != CFG_NOERROR ) m_nErrorLine = m_nLineNum;
+	if (ret != CFG_NOERROR) m_nErrorLine = m_nLineNum;
 
 	FreeToken(&token);
 
-	if(m_FilePointer){
+	if (m_FilePointer) {
 		fclose(m_FilePointer);
 		m_FilePointer = NULL;
 	}

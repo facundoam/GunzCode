@@ -1,4 +1,4 @@
-//
+ï»¿//
 //	Misc Functions about File
 //
 //                                              written by lee jang ho
@@ -33,7 +33,7 @@ BOOL IsModifiedOutside(const char *pFileName, FILETIME ot)
 {
 	FILETIME ft;
 	if(GetLastUpdate(pFileName, &ft)==FALSE)
-		return TRUE;	// ¿­Áö ¸øÇÏ´Â °æ¿ì ¼öÁ¤µÇ¾ú´Ù°í °¡Á¤ÇÏ°í ¸®ÅÏ
+		return TRUE;	// ì—´ì§€ ëª»í•˜ëŠ” ê²½ìš° ìˆ˜ì •ë˜ì—ˆë‹¤ê³  ê°€ì •í•˜ê³  ë¦¬í„´
 
 	if((ft.dwHighDateTime==ot.dwHighDateTime)&&
 		(ft.dwLowDateTime==ot.dwLowDateTime))
@@ -48,11 +48,11 @@ BOOL RemoveExtension(char *pRemoveExt, const char *pFileName)
 		if(pFileName[nLen-i-1]=='.'){
 			memcpy(pRemoveExt, pFileName, nLen-i-1);
 			pRemoveExt[nLen-i-1] = 0;
-			return TRUE;	// ¼º°øÀûÀ¸·Î ExtensionÀ» Á¦°ÅÇÏ¿´À» °æ¿ì
+			return TRUE;	// ì„±ê³µì ìœ¼ë¡œ Extensionì„ ì œê±°í•˜ì˜€ì„ ê²½ìš°
 		}
 	}
 	strcpy(pRemoveExt, pFileName);
-	return FALSE;	// ExtensionÀÌ Á¸ÀçÇÏÁö ¾Ê´Â °æ¿ì ¿øº» º¹»ç
+	return FALSE;	// Extensionì´ ì¡´ì¬í•˜ì§€ ì•ŠëŠ” ê²½ìš° ì›ë³¸ ë³µì‚¬
 }
 
 void ReplaceExtension(char *pTargetName, const char *pSourceName, char *pExt)
@@ -76,7 +76,7 @@ int CountStrEqual(const char *pStr0, const char *pStr1)
 	return i;
 }
 
-//	pDir	:	\abc\ac\a\ °°Àº Çü½Ä
+//	pDir	:	\abc\ac\a\ ê°™ì€ í˜•ì‹
 int GetDirDepth(const char *pDir)
 {
 	int nDepth = 0;
@@ -118,7 +118,7 @@ int GetDirAsDepth(char *pDepthDir, const char *pDir, int nDepth)
 	return nStartDir;
 }
 
-// ±× Depth±îÁöÀÇ ½ºÆ®¸µ Å©±â
+// ê·¸ Depthê¹Œì§€ì˜ ìŠ¤íŠ¸ë§ í¬ê¸°
 int GetLenAsDepth(char *pDir, int nDepth)
 {
 	int nDepthCount = 0;
@@ -182,7 +182,7 @@ void GetRelativePath(char *pRelativePath, const char *pBasePath, const char *pPa
 
 	nEqualLen = GetLenAsDepth(szDir, nEqualDepth);
 
-	// DepthÀÇ Â÷ÀÌ¸¸Å­ "../"³Ö±â
+	// Depthì˜ ì°¨ì´ë§Œí¼ "../"ë„£ê¸°
 	char szTemp[256]={0,};
 	char *pUp = "..\\";
 	int nNextPos = 0;
@@ -195,8 +195,8 @@ void GetRelativePath(char *pRelativePath, const char *pBasePath, const char *pPa
 	wsprintf(pRelativePath, "%s%s%s", szTemp, szFileName, szExt);
 }
 
-// pFullPath	:	¸®ÅÏµÇ´Â Full Path
-// pBasePath	:	±âÁØÀÌ µÇ´Â Path ( ÀÌ¿ÕÀÌ¸é FullPath, Relatvie Path´Â ÇöÀç µğ·ºÅä¸®¸¦ ±âÁØÀ¸·Î )
+// pFullPath	:	ë¦¬í„´ë˜ëŠ” Full Path
+// pBasePath	:	ê¸°ì¤€ì´ ë˜ëŠ” Path ( ì´ì™•ì´ë©´ FullPath, Relatvie PathëŠ” í˜„ì¬ ë””ë ‰í† ë¦¬ë¥¼ ê¸°ì¤€ìœ¼ë¡œ )
 // pRelativePath:	Relative Path	( ex. abc\def.ghi )
 void GetFullPath(char *pFullPath, const char *pBasePath, const char *pRelativePath)
 {
@@ -414,7 +414,7 @@ bool GetMyDocumentsPath(char* path)
 		return false;
 
 	/*
-	// 2000 ÀÌ»ó¿¡¼­¸¸ ÀÛµ¿.. ie 5.0 ÀÌ»ó...
+	// 2000 ì´ìƒì—ì„œë§Œ ì‘ë™.. ie 5.0 ì´ìƒ...
 
 	if(SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PERSONAL|CSIDL_FLAG_CREATE, NULL, 0, path))) 
 	{

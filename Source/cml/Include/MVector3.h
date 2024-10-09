@@ -13,8 +13,9 @@ public:
 		float v[3];
 	};
 
-	MVector3() { }
-	MVector3(float xx, float yy, float zz): x(xx), y(yy), z(zz) { }
+	MVector3() : x(0.0f), y(0.0f), z(0.0f) {}
+	MVector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+	MVector3(const float arr[3]) : x(arr[0]), y(arr[1]), z(arr[2]) {}
 
 	// operator
 	MVector3 operator-() const { return MVector3(-x, -y, -z);   }

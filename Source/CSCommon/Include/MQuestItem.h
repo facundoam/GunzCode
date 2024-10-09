@@ -122,7 +122,6 @@ struct SimpleQuestItem
 	unsigned int		m_nCount;
 };
 
-// client와 server와의 공통된 부분.
 class MBaseQuestItem
 {
 public: 
@@ -130,10 +129,6 @@ public:
 	virtual ~MBaseQuestItem() {}
 };
 
-// server에 특화된 부분.
-// 퀘스트 아이템은 획득한 적이 있을 경우는 기본값 1을 Count에 설정을 함.
-//   그렇게이 카운트가 0이 아닌 1부터 시작을 하기에 실질적인 수량보다 1이 많음.
-//   현재 수량을 요구할시는 저장하고 있는 수량에 -1을 해서 반환을 해줘야 함.
 class MQuestItem : public MBaseQuestItem
 {
 public:
@@ -156,19 +151,14 @@ public:
 	void SetDesc( MQuestItemDesc* pDesc ) { m_pDesc = pDesc; }
 	void SetItemID( unsigned long int nItemID )	{ m_nItemID = nItemID; }
 	
-// private:
 	bool SetCount( int nCount, bool bKnown = true );
 private :
 	unsigned long int	m_nItemID;
 	MQuestItemDesc*		m_pDesc;
-	int					m_nCount;			// 같은 종류의 아이템은 새로 생성하지 않고 수를 늘림.
+	int					m_nCount;			
 	bool				m_bKnown;
 };
 
-
-// 게임중에 퀘스트 아이템을 등록하고 있는 클래스.
-// 맵에 등록된 퀘스트 아이템은 적어도 한번은 획득한적이 있었던 아이템임.
-// 개수가 1일경우는 획득한 적이 있던 아이템이지만 현재 가지고 있는 수량이 0이라는 뜻.
 class MQuestItemMap : public map< unsigned long int, MQuestItem* >
 {
 public :
@@ -188,24 +178,10 @@ public :
 	MQuestItem*		Find( const unsigned long int nItemID );
 	void			Insert( unsigned long int nItemID, MQuestItem* pQuestItem );
 	
-/*
-	static MUID UseUID()
-	{
-		m_csUIDGenerateLock.Lock();
-			m_uidGenerate.Increase();	
-		m_csUIDGenerateLock.Unlock();
-		return m_uidGenerate;
-	}
-*/
 private :
-	// static MUID				m_uidGenerate;
-	// static MCriticalSection	m_csUIDGenerateLock;
-	bool					m_bDoneDbAccess;		// 디비에서 정보를 가져왔었는지 여부
+	bool					m_bDoneDbAccess;		
 };
 
-
-// 유니크 아이템 획득시, 일정 시간 경과, 일정 횟수 이상 플레이.
-// 유니크 아이템 획득은 바로 DB를 업데이 시킴.
 class DBQuestCachingData
 {
 public :
@@ -220,7 +196,7 @@ public :
 
 	bool IsRequestUpdate()
 	{
-		if( (MAX_PLAY_COUNT < m_nPlayCount) || (MAX_ELAPSE_TIME < GetUpdaetElapse()) ||
+		if( (MAX_PLAY_COUNT < m_nPlayCount) || (MAX_ELAPSE_TIME < GetUpdateElapse()) ||
 			(MAX_SHOP_TRADE_COUNT < m_nShopTradeCount) || (MAX_REWARD_COUNT < m_nRewardCount) ||
 			m_bEnableUpdate )
 			return m_bEnableUpdate = true;
@@ -228,7 +204,7 @@ public :
 		return m_bEnableUpdate = false;
 	}
 
-	bool IsRequestUpdateWhenLogout()
+	bool IsRequestUpdateWhenLogout() const
 	{
 		return ( (0 < (m_nShopTradeCount + m_nRewardCount)) || m_bEnableUpdate );
 	}
@@ -240,16 +216,18 @@ public :
 	void SacrificeQuestItem() { m_bEnableUpdate = true; }
 	void Reset();
 	
-	DWORD GetUpdaetElapse() 
+	DWORD GetUpdateElapse() const
 	{
+		DWORD currentTime = timeGetTime(); // Store timeGetTime() result to avoid redundant calls
+
 #ifdef _DEBUG
-		char szTemp[ 100 ] = {0};
-		DWORD t = timeGetTime();
-		int a = t - m_dwLastUpdateTime;
-		sprintf( szTemp, "Update Elapse %d %d\n", timeGetTime() - m_dwLastUpdateTime, a );
-		mlog( szTemp );
+		char szTemp[100] = { 0 };
+		int elapsedTime = currentTime - m_dwLastUpdateTime;
+		sprintf_s(szTemp, sizeof(szTemp), "Update Elapse %d %d\n", elapsedTime, elapsedTime);
+		mlog(szTemp);
 #endif
-		return timeGetTime() - m_dwLastUpdateTime; 
+
+		return currentTime - m_dwLastUpdateTime;
 	}
 
 	void SetEnableUpdateState( const bool bState )	{ m_bEnableUpdate = bState; }

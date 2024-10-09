@@ -1,9 +1,3 @@
-/*
-	100% free public domain implementation of the HMAC-SHA1 algorithm
-	by Chien-Chung, Chung (Jim Chung) <jimchung1221@gmail.com>
-*/
-
-
 #ifndef __HMAC_SHA1_H__
 #define __HMAC_SHA1_H__
 
@@ -18,8 +12,8 @@ typedef unsigned char BYTE ;
 class CHMAC_SHA1 : public CSHA1
 {
     private:
-		BYTE m_ipad[64];
-        BYTE m_opad[64];
+		BYTE m_ipad[64] = {};
+        BYTE m_opad[64] = {};
 
 		char * szReport ;
 		char * SHA1_Key ;

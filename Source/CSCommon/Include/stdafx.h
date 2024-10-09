@@ -50,7 +50,6 @@
 #define _BLOCK_HACKER	// 해킹관련 정보를 DB에 남기는 작업.
 
 
-#include "MLocaleDefine.h"
 #include "MDebug.h"
 #include "MMatchDebug.h"
 #include "MXml.h"

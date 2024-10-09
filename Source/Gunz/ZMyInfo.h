@@ -4,9 +4,7 @@
 #include "ZPrerequisites.h"
 #include "ZMyItemList.h"
 #include "ZMyBuffMgr.h"
-#include "HShield/HShield.h"
 
-/// 시스템에서 필요한 내정보
 struct ZMySystemInfo
 {
 	bool			bInGameNoChat;				// 게임중 대화 가능 여부

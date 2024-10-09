@@ -81,14 +81,14 @@ struct MCallStackInfo
 	DWORD *pCallStack;
 };
 
-static BOOL CALLBACK EnumLoadedModulesCallback(LPSTR pModuleName, ULONG ulModuleBase,  ULONG ulModuleSize,  PVOID pUserContext)
+static BOOL CALLBACK EnumLoadedModulesCallback(PCSTR pModuleName, ULONG ulModuleBase, ULONG ulModuleSize, PVOID pUserContext)
 {
-    if (!SymLoadModule((HANDLE)pUserContext, 0, pModuleName, 0, ulModuleBase, ulModuleSize))
-    {
-//		::MessageBox(NULL,"SymLoadModule failed","error",MB_OK);
-		return false;
-    }
-    return TRUE;
+	if (!SymLoadModule((HANDLE)pUserContext, 0, pModuleName, 0, ulModuleBase, ulModuleSize))
+	{
+		// Handle failure (optional)
+		return FALSE;
+	}
+	return TRUE;
 }
 
 bool InitializeSymbols()
@@ -96,7 +96,6 @@ bool InitializeSymbols()
 	DWORD dwProcessId = GetCurrentProcessId();
 	HANDLE hProcess = GetCurrentProcess();
 	if(!SymInitialize(hProcess,NULL,false)) return false;
-//	if(!SymLoadModule64(hProcess ,NULL, "MatchServerD.exe",NULL,NULL,NULL)) return false;
 
 	OSVERSIONINFO   osver;
 	osver.dwOSVersionInfoSize = sizeof(osver);

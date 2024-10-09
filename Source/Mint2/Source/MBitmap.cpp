@@ -21,8 +21,8 @@ MBitmap::~MBitmap(void)
 bool MBitmap::Create(const char* szName)
 {
 	_ASSERT(strlen(szName)<MBITMAP_NAME_LENGTH);
-	strcpy(m_szName, szName);
-
+	strcpy_s(m_szName, sizeof(m_szName), szName);
+	
 	return true;
 }
 
@@ -43,7 +43,7 @@ MAniBitmap::~MAniBitmap(void)
 bool MAniBitmap::Create(const char* szName)
 {
 	_ASSERT(strlen(szName)<MBITMAP_NAME_LENGTH);
-	strcpy(m_szName, szName);
+	strcpy_s(m_szName, sizeof(m_szName), szName);
 
 	return true;
 }

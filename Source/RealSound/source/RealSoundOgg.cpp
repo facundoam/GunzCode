@@ -6,7 +6,7 @@
 
 #define OGG_BUF_SERVICE_INTERVAL	250
 #define OGG_BUF_SIZE				65536         // buffer length
-RealSoundOgg*	g_pRealSoundOgg = NULL;
+RealSoundOgg* g_pRealSoundOgg = NULL;
 
 RealSoundOgg::RealSoundOgg()
 {
@@ -76,11 +76,11 @@ void RealSoundOgg::Play(bool bLoop)
 
 	m_pDSB->SetCurrentPosition(0);
 	m_nCurSection = m_nLastSection = 0;
-	WriteStream(m_nBufSize*2);
+	WriteStream(m_nBufSize * 2);
 
-	if( !m_bMute )
-		m_pDSB->Play(0,0,DSBPLAY_LOOPING);    
-	
+	if (!m_bMute)
+		m_pDSB->Play(0, 0, DSBPLAY_LOOPING);
+
 	m_bPlaying = true;
 	m_bLoop = bLoop;
 	m_bDone = false;
@@ -104,7 +104,7 @@ void RealSoundOgg::Stop()
 	}
 	LeaveCriticalSection(&m_csProcess);
 
-	if (m_hThread) 
+	if (m_hThread)
 	{
 		WaitForSingleObject(m_hThread, INFINITE);
 		CloseHandle(m_hThread);
@@ -116,31 +116,31 @@ void RealSoundOgg::Stop()
 
 bool RealSoundOgg::CreateSoundBuffer()
 {
-	vorbis_info *vi = ov_info(&m_vf,-1);
+	vorbis_info* vi = ov_info(&m_vf, -1);
 
 	// set the wave format
 	WAVEFORMATEX wfm;
 
 	memset(&wfm, 0, sizeof(wfm));
 
-	wfm.cbSize          = sizeof(wfm);
-	wfm.nChannels       = vi->channels;
-	wfm.wBitsPerSample  = 16;                    // ogg vorbis is always 16 bit
-	wfm.nSamplesPerSec  = vi->rate;
-	wfm.nAvgBytesPerSec = wfm.nSamplesPerSec*wfm.nChannels*2;
-	wfm.nBlockAlign     = 2*wfm.nChannels;
-	wfm.wFormatTag      = 1;
+	wfm.cbSize = sizeof(wfm);
+	wfm.nChannels = vi->channels;
+	wfm.wBitsPerSample = 16;                    // ogg vorbis is always 16 bit
+	wfm.nSamplesPerSec = vi->rate;
+	wfm.nAvgBytesPerSec = wfm.nSamplesPerSec * wfm.nChannels * 2;
+	wfm.nBlockAlign = 2 * wfm.nChannels;
+	wfm.wFormatTag = 1;
 
 	// set up the buffer
 	HRESULT hr;
 	memset(&m_dsbd, 0, sizeof(DSBUFFERDESC));
-	m_dsbd.dwSize         = sizeof(DSBUFFERDESC);
-	m_dsbd.dwFlags        = DSBCAPS_CTRLVOLUME;
-	m_dsbd.dwBufferBytes  = m_nBufSize * 2;
-	m_dsbd.lpwfxFormat    = &wfm;
-	hr = m_pRealSound->GetDS()->CreateSoundBuffer(&m_dsbd, &m_pDSB, NULL );
+	m_dsbd.dwSize = sizeof(DSBUFFERDESC);
+	m_dsbd.dwFlags = DSBCAPS_CTRLVOLUME;
+	m_dsbd.dwBufferBytes = m_nBufSize * 2;
+	m_dsbd.lpwfxFormat = &wfm;
+	hr = m_pRealSound->GetDS()->CreateSoundBuffer(&m_dsbd, &m_pDSB, NULL);
 
-	if( hr != DS_OK ) return false;
+	if (hr != DS_OK) return false;
 	return true;
 }
 
@@ -149,9 +149,9 @@ bool RealSoundOgg::OpenStream(void* pData, int nMaxSize)
 	if (m_bOpened) Close();
 
 	m_nOggMaxSize = nMaxSize;
-	ov_callbacks callbacks = {ReadCallback, SeekCallback, CloseCallback, TellCallback};
+	ov_callbacks callbacks = { ReadCallback, SeekCallback, CloseCallback, TellCallback };
 
-	if (ov_open_callbacks(pData, &m_vf, NULL, 0, callbacks) < 0) 
+	if (ov_open_callbacks(pData, &m_vf, NULL, 0, callbacks) < 0)
 	{
 		m_nOggMaxSize = 0;
 		return false;
@@ -172,19 +172,30 @@ bool RealSoundOgg::OpenStream(void* pData, int nMaxSize)
 
 bool RealSoundOgg::Open(const char* szFileName)
 {
+	// If already opened, close the previous file
 	if (m_bOpened) Close();
 
+	// Open the file in binary read mode
 	FILE* fp = fopen(szFileName, "rb");
-	if (!fp) return false;
+	if (!fp) return false; // If file cannot be opened, return false
 
-	ov_open(fp, &m_vf, NULL, 0);
-
-	if (!CreateSoundBuffer())
+	// Initialize the Ogg Vorbis file stream
+	int result = ov_open(fp, &m_vf, NULL, 0);
+	if (result < 0) // Check if ov_open was successful
 	{
-		fclose(fp);
+		fclose(fp);  // If not, close the file and return false
 		return false;
 	}
 
+	// Create the sound buffer
+	if (!CreateSoundBuffer())
+	{
+		ov_clear(&m_vf); // Clean up Ogg resources
+		fclose(fp);      // Close the file
+		return false;    // Return false if buffer creation failed
+	}
+
+	// Set the opened flag to true
 	m_bOpened = true;
 
 	return true;
@@ -197,7 +208,7 @@ void RealSoundOgg::Close()
 	Stop();
 	ov_clear(&m_vf);
 
-	if (m_fp != NULL) 
+	if (m_fp != NULL)
 	{
 		fclose(m_fp);
 		m_fp = NULL;
@@ -215,18 +226,18 @@ void RealSoundOgg::Close()
 bool RealSoundOgg::WriteStream(DWORD nSize)
 {
 	HRESULT hr;
-	char    *buf;
+	char* buf;
 
 	EnterCriticalSection(&m_csWrite);
 
-	hr = m_pDSB->Lock( m_nLastSection * m_nBufSize, nSize, (LPVOID*)&buf, &nSize, NULL, NULL, 0 );
+	hr = m_pDSB->Lock(m_nLastSection * m_nBufSize, nSize, (LPVOID*)&buf, &nSize, NULL, NULL, 0);
 	if (hr != DS_OK) return false;
 
 	DWORD   pos = 0;
 	int     sec = 0;
 	int     ret = 1;
 
-	while((ret) && (pos < nSize))
+	while ((ret) && (pos < nSize))
 	{
 		ret = ov_read(&m_vf, buf + pos, nSize - pos, 0, 2, 1, &sec);
 		pos += ret;
@@ -238,7 +249,7 @@ bool RealSoundOgg::WriteStream(DWORD nSize)
 		{
 			ret = 1;
 			ov_pcm_seek(&m_vf, 0);
-			while((ret) && (pos < nSize))
+			while ((ret) && (pos < nSize))
 			{
 				ret = ov_read(&m_vf, buf + pos, nSize - pos, 0, 2, 1, &sec);
 				pos += ret;
@@ -246,9 +257,9 @@ bool RealSoundOgg::WriteStream(DWORD nSize)
 		}
 		else
 		{
-			while(pos < nSize) 
+			while (pos < nSize)
 			{
-				*(buf+pos)=0; 
+				*(buf + pos) = 0;
 				pos++;
 			}
 
@@ -256,7 +267,7 @@ bool RealSoundOgg::WriteStream(DWORD nSize)
 		}
 	}
 
-	m_pDSB->Unlock( buf, nSize, NULL, NULL );
+	m_pDSB->Unlock(buf, nSize, NULL, NULL);
 
 	m_nLastSection = m_nCurSection;
 
@@ -267,16 +278,16 @@ bool RealSoundOgg::WriteStream(DWORD nSize)
 
 bool RealSoundOgg::ServiceBuffer()
 {
-	if( m_bMute ) return true;
+	if (m_bMute) return true;
 	if (m_pDSB == NULL) return false;
 
 	DWORD pos = 0;
 	m_pDSB->GetCurrentPosition(&pos, NULL);
-	m_nCurSection = ((int)pos < m_nBufSize) ? 0:1;
+	m_nCurSection = ((int)pos < m_nBufSize) ? 0 : 1;
 
 	if (m_nCurSection != m_nLastSection)
 	{
-		if (m_bDone && !m_bLoop) 
+		if (m_bDone && !m_bLoop)
 		{
 			if (m_bOpened)
 			{
@@ -298,11 +309,11 @@ bool RealSoundOgg::ServiceBuffer()
 	return true;
 }
 
-size_t RealSoundOgg::ReadCallback(void *ptr, size_t size, size_t nmemb, void *datasource)
+size_t RealSoundOgg::ReadCallback(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
 	char* temp = (char*)datasource;
 	unsigned long bytesread;
-	bytesread = (unsigned long)(size*nmemb);
+	bytesread = (unsigned long)(size * nmemb);
 
 	if ((g_pRealSoundOgg->m_nOggOffset + (int)bytesread) >= g_pRealSoundOgg->m_nOggMaxSize)
 	{
@@ -310,12 +321,12 @@ size_t RealSoundOgg::ReadCallback(void *ptr, size_t size, size_t nmemb, void *da
 	}
 	memcpy(ptr, &temp[g_pRealSoundOgg->m_nOggOffset], bytesread);
 	g_pRealSoundOgg->m_nOggOffset += bytesread;
-	return bytesread/size;
+	return bytesread / size;
 
 }
-int RealSoundOgg::SeekCallback(void *datasource, ogg_int64_t offset, int whence)
+int RealSoundOgg::SeekCallback(void* datasource, ogg_int64_t offset, int whence)
 {
-	switch(whence)
+	switch (whence)
 	{
 	case SEEK_SET:
 		g_pRealSoundOgg->m_nOggOffset = (int)offset;
@@ -331,13 +342,13 @@ int RealSoundOgg::SeekCallback(void *datasource, ogg_int64_t offset, int whence)
 	return 0;
 }
 
-int RealSoundOgg::CloseCallback(void *datasource)
+int RealSoundOgg::CloseCallback(void* datasource)
 {
 	g_pRealSoundOgg->m_nOggOffset = 0;
 	return 0;
 }
 
-long RealSoundOgg::TellCallback(void *datasource)
+long RealSoundOgg::TellCallback(void* datasource)
 {
 	return g_pRealSoundOgg->m_nOggOffset;
 }
@@ -346,15 +357,15 @@ void RealSoundOgg::SetVolume(float t)
 {
 	float fVolumeConstant = t;
 #define MIN	(DSBVOLUME_MIN/2)
-	if(m_pDSB!=NULL) m_pDSB->SetVolume(LinearToLogVol((double)t));
+	if (m_pDSB != NULL) m_pDSB->SetVolume(LinearToLogVol((double)t));
 }
 
-DWORD WINAPI RealSoundOgg::StreamThread(void *pParam)
+DWORD WINAPI RealSoundOgg::StreamThread(void* pParam)
 {
 
 	RealSoundOgg* pRealSoundOgg = (RealSoundOgg*)pParam;
 	BOOL ret;
-	do 
+	do
 	{
 		ret = FALSE;
 		Sleep(OGG_BUF_SERVICE_INTERVAL);
@@ -368,7 +379,7 @@ DWORD WINAPI RealSoundOgg::StreamThread(void *pParam)
 
 		LeaveCriticalSection(&pRealSoundOgg->m_csProcess);
 
-	} while(ret == TRUE);
+	} while (ret == TRUE);
 
 
 
@@ -376,15 +387,15 @@ DWORD WINAPI RealSoundOgg::StreamThread(void *pParam)
 	return 0;
 }
 
-void RealSoundOgg::SetMute( bool b )
+void RealSoundOgg::SetMute(bool b)
 {
-	if( m_bMute == b ) return;
-	
+	if (m_bMute == b) return;
+
 	m_bMute = b;
 
-	if( !m_pDSB ) return;
+	if (!m_pDSB) return;
 
-	if( b ) // Mute
+	if (b) // Mute
 	{
 		EnterCriticalSection(&m_csProcess);
 		m_pDSB->Stop();
@@ -394,7 +405,7 @@ void RealSoundOgg::SetMute( bool b )
 	{
 		EnterCriticalSection(&m_csProcess);
 		m_pDSB->SetCurrentPosition(0L);
-		m_pDSB->Play( 0,0,DSBPLAY_LOOPING );
+		m_pDSB->Play(0, 0, DSBPLAY_LOOPING);
 		LeaveCriticalSection(&m_csProcess);
 	}
 }

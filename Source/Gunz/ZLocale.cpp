@@ -1,10 +1,9 @@
 #include "stdafx.h"
 #include "ZLocale.h"
 #include "ZConfiguration.h"
-#include "ZNetmarble.h"			// test
+#include "ZNetmarble.h"
 #include "ZApplication.h"
 #include "ZGlobal.h"
-#include "ZSecurity.h"
 #include "ZPost.h"
 
 
@@ -12,11 +11,6 @@
 #include "ZNHN_USA.h"
 #include "ZNHN_USA_Report.h"
 #endif
-
-#ifdef _GAMEGUARD
-#include "ZGameGuard.h"
-#endif
-
 
 
 
@@ -218,9 +212,6 @@ void ZLocale::PostLoginViaHomepage(MUID* pAllocUID)
 			ZGameOnJPAuthInfo* pAuth = (ZGameOnJPAuthInfo*)m_pAuthInfo;
 			ZPostGameOnJPLogin( pAuth->GetString(), pAuth->GetStatIndex(), nChecksum, szEncryptMD5Value);
 
-#ifdef _GAMEGUARD
-			ZGameguard::m_IsResponseFirstGameguardAuth = false;
-#endif	// _GAMEGUARD
 		}
 		break;
 #endif	// LOCALE_JAPAN
@@ -242,9 +233,6 @@ void ZLocale::PostLoginViaHomepage(MUID* pAllocUID)
 				, const_cast<char*>(pNHNAuth->GetAuthStr())
 				, nChecksum, szEncryptMD5Value);
 
-#ifdef _GAMEGUARD
-			ZGameguard::m_IsResponseFirstGameguardAuth = false;
-#endif	// _GAMEGUARD
 		}
 
 		break;

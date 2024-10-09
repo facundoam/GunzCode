@@ -61,7 +61,7 @@ void MQuestNPCQueue::Make(int nQLD, MQuestNPCSetInfo* pNPCSetInfo, MQUEST_NPC nK
 	// shuffle
 	for (int i = 0; i < nSize; i++)
 	{
-		int nTarIndex = RandomNumber(i, nSize-1);
+		int nTarIndex = RandomNumber(i, nSize - 1);
 		MQUEST_NPC temp = m_Queue[nTarIndex];
 		m_Queue[nTarIndex] = m_Queue[i];
 		m_Queue[i] = temp;
@@ -115,7 +115,7 @@ int MQuestNPCQueue::GetCount()
 bool MQuestNPCQueue::IsKeyNPC(MQUEST_NPC npc)
 {
 	if (!IsEmpty() && IsContainKeyNPC()) // Make()에서 큐 첫번째 칸에 KeyNPC를 넣었으므로 그것과 비교
-		return npc==m_Queue[0];
+		return npc == m_Queue[0];
 
 	return false;
 }
@@ -133,20 +133,24 @@ MQuestLevel::~MQuestLevel()
 
 const bool MQuestLevel::Make_MTDQuestGameInfo(MTD_QuestGameInfo* pout, MMATCH_GAMETYPE eGameType)
 {
-	if( MAX_QUEST_NPC_INFO_COUNT <= static_cast<int>(m_StaticInfo.NPCs.size()) )
+	if (MAX_QUEST_NPC_INFO_COUNT <= static_cast<int>(m_StaticInfo.NPCs.size()))
 	{
 		//_ASSERT( 0 );
 		return false;
 	}
 
-	if( MAX_QUEST_MAP_SECTOR_COUNT <= static_cast<int>(m_StaticInfo.SectorList.size()) )
+	if (MAX_QUEST_MAP_SECTOR_COUNT <= static_cast<int>(m_StaticInfo.SectorList.size()))
 	{
 		//_ASSERT( 0 );
 		return false;
 	}
 
-	
-	pout->nNPCInfoCount = (int)m_StaticInfo.NPCs.size();
+	size_t npcInfoCount = m_StaticInfo.NPCs.size();
+	if (npcInfoCount > UCHAR_MAX) {
+		mlog("Warning: NPC Info Count exceeds the limit of unsigned char.\n");
+		npcInfoCount = UCHAR_MAX;
+	}
+	pout->nNPCInfoCount = static_cast<unsigned char>(npcInfoCount);
 	int idx = 0;
 	for (set<MQUEST_NPC>::iterator itor = m_StaticInfo.NPCs.begin(); itor != m_StaticInfo.NPCs.end(); ++itor)
 	{
@@ -154,18 +158,23 @@ const bool MQuestLevel::Make_MTDQuestGameInfo(MTD_QuestGameInfo* pout, MMATCH_GA
 		idx++;
 	}
 
-	pout->nMapSectorCount = (int)m_StaticInfo.SectorList.size();
+	size_t mapSectorCount = m_StaticInfo.SectorList.size();
+	if (mapSectorCount > USHRT_MAX) {
+		mlog("Warning: Map Sector Count exceeds the limit of unsigned short.\n");
+		mapSectorCount = USHRT_MAX;  // Or handle as needed
+	}
+	pout->nMapSectorCount = static_cast<unsigned short>(mapSectorCount);
 	for (int i = 0; i < pout->nMapSectorCount; i++)
 	{
-		pout->nMapSectorID[i]			= m_StaticInfo.SectorList[i].nSectorID;
-		pout->nMapSectorLinkIndex[i]	= m_StaticInfo.SectorList[i].nNextLinkIndex;
+		pout->nMapSectorID[i] = m_StaticInfo.SectorList[i].nSectorID;
+		pout->nMapSectorLinkIndex[i] = m_StaticInfo.SectorList[i].nNextLinkIndex;
 	}
 
 	pout->nNPCCount = (unsigned short)m_NPCQueue.GetCount();
-	pout->fNPC_TC	= m_StaticInfo.fNPC_TC;
-	pout->nQL		= m_StaticInfo.nQL;
+	pout->fNPC_TC = m_StaticInfo.fNPC_TC;
+	pout->nQL = m_StaticInfo.nQL;
 	pout->eGameType = eGameType;
-	pout->nRepeat	= m_StaticInfo.pScenario->nRepeat;
+	pout->nRepeat = m_StaticInfo.pScenario->nRepeat;
 
 	return true;
 }
@@ -198,23 +207,23 @@ void MQuestLevel::Init(int nScenarioID, int nDice, MMATCH_GAMETYPE eGameType)
 	{
 		InitSectors(eGameType);
 		InitNPCs();
-	}
+}
 
 	m_DynamicInfo.nCurrSectorIndex = 0;
 
 	InitStaticInfo(eGameType);	// 난이도 상수, NPC 난이도 조절 계수 등을 설정
-	
+
 #ifdef _DEBUG_QUEST
-	if( nScenarioID == 100)
+	if (nScenarioID == 100)
 		m_StaticInfo.nQLD = 1;
 #endif
-	
+
 	InitCurrSector(eGameType);
 }
 
 bool MQuestLevel::InitSectors(MMATCH_GAMETYPE eGameType)
 {
-	if (m_StaticInfo.pScenario == NULL) 
+	if (m_StaticInfo.pScenario == NULL)
 	{
 		//_ASSERT(0);
 		return false;
@@ -229,7 +238,7 @@ bool MQuestLevel::InitSectors(MMATCH_GAMETYPE eGameType)
 	m_StaticInfo.SectorList.reserve(nSectorCount);
 	m_StaticInfo.SectorList.resize(nSectorCount);
 
-	int nSectorIndex = nSectorCount-1;
+	int nSectorIndex = nSectorCount - 1;
 
 	int nSectorID = nKeySector;
 	int nLinkIndex = 0;
@@ -244,7 +253,7 @@ bool MQuestLevel::InitSectors(MMATCH_GAMETYPE eGameType)
 		else
 			ASSERT(0);
 
-		if (pSector == NULL) 
+		if (pSector == NULL)
 		{
 			//_ASSERT(0);
 			return false;
@@ -257,7 +266,7 @@ bool MQuestLevel::InitSectors(MMATCH_GAMETYPE eGameType)
 		m_StaticInfo.SectorList[nSectorIndex] = node;
 
 
-		if (i != (nSectorCount-1)) 
+		if (i != (nSectorCount - 1))
 		{
 			// 현재 섹터노드를 바탕으로 이전 섹터와 링크를 결정한다.
 			int nBacklinkCount = (int)pSector->VecBacklinks.size();
@@ -269,20 +278,19 @@ bool MQuestLevel::InitSectors(MMATCH_GAMETYPE eGameType)
 				{
 					nLoopCount++;
 
-					int backlink_index = RandomNumber(0, (nBacklinkCount-1));
+					int backlink_index = RandomNumber(0, (nBacklinkCount - 1));
 					nSectorID = pSector->VecBacklinks[backlink_index].nSectorID;
 					nLinkIndex = pSector->VecBacklinks[backlink_index].nLinkIndex;
 
 					// 같은 노드가 두번 반복해서 걸리지 않도록 한다.
-					if ((nBacklinkCount > 1) && ((nSectorIndex+1) < nSectorCount))
+					if ((nBacklinkCount > 1) && ((nSectorIndex + 1) < nSectorCount))
 					{
-						if (nSectorID == m_StaticInfo.SectorList[nSectorIndex+1].nSectorID)
+						if (nSectorID == m_StaticInfo.SectorList[nSectorIndex + 1].nSectorID)
 						{
 							bSameNode = true;
 						}
 					}
-				}
-				while ((bSameNode) && (nLoopCount < 2));	// 이전 노드랑 같은 노드가 걸리면 반복
+				} while ((bSameNode) && (nLoopCount < 2));	// 이전 노드랑 같은 노드가 걸리면 반복
 
 			}
 			else
@@ -301,7 +309,7 @@ bool MQuestLevel::InitSectors(MMATCH_GAMETYPE eGameType)
 
 bool MQuestLevel::InitNPCs()
 {
-	if (m_StaticInfo.pScenario == NULL) 
+	if (m_StaticInfo.pScenario == NULL)
 	{
 		//_ASSERT(0);
 		return false;
@@ -314,12 +322,12 @@ bool MQuestLevel::InitNPCs()
 	{
 		int nNPCSetID = m_StaticInfo.pScenario->Maps[nDice].vecNPCSetArray[i];
 		MQuestNPCSetInfo* pNPCSetInfo = pQuest->GetNPCSetInfo(nNPCSetID);
-		if (pNPCSetInfo == NULL) 
+		if (pNPCSetInfo == NULL)
 		{
 			//_ASSERT(0);
 			return false;
 		}
-		
+
 		// base npc는 따로 넣는다.
 		m_StaticInfo.NPCs.insert(set<MQUEST_NPC>::value_type(pNPCSetInfo->nBaseNPC));
 
@@ -331,7 +339,7 @@ bool MQuestLevel::InitNPCs()
 		}
 	}
 
-	
+
 	return true;
 }
 
@@ -346,8 +354,8 @@ bool MQuestLevel::MoveToNextSector(MMATCH_GAMETYPE eGameType)
 {
 	if (MGetGameTypeMgr()->IsQuestOnly(eGameType))
 	{
-		if ((m_DynamicInfo.nCurrSectorIndex+1) >= GetMapSectorCount()) return false;
-	
+		if ((m_DynamicInfo.nCurrSectorIndex + 1) >= GetMapSectorCount()) return false;
+
 		MMatchQuest* pQuest = MMatchServer::GetInstance()->GetQuest();
 
 		m_DynamicInfo.nCurrSectorIndex++;
@@ -376,17 +384,17 @@ void MQuestLevel::InitCurrSector(MMATCH_GAMETYPE eGameType)
 {
 	// npc queue 세팅
 	MMatchQuest* pQuest = MMatchServer::GetInstance()->GetQuest();
-	
+
 	int nNPCSetID = 0;
 
-	if( m_DynamicInfo.nCurrSectorIndex < (int)m_StaticInfo.pScenario->Maps[m_StaticInfo.nDice].vecNPCSetArray.size() )
+	if (m_DynamicInfo.nCurrSectorIndex < (int)m_StaticInfo.pScenario->Maps[m_StaticInfo.nDice].vecNPCSetArray.size())
 	{
 		nNPCSetID = m_StaticInfo.pScenario->Maps[m_StaticInfo.nDice].vecNPCSetArray[m_DynamicInfo.nCurrSectorIndex];
 	}
 	else
 	{
 		//_ASSERT( 0 && "NPC set의 크기에 문제가 있음. 리소스 검사가 필요함." );
-		mlog( "NPC set의 크기에 문제가 있음. 리소스 검사가 필요함.\n" );
+		mlog("NPC set의 크기에 문제가 있음. 리소스 검사가 필요함.\n");
 		return;
 	}
 
@@ -464,7 +472,7 @@ void MQuestLevel::InitStaticInfo(MMATCH_GAMETYPE eGameType)
 			m_StaticInfo.nQLD = m_StaticInfo.pScenario->nMaxSpawn;				// 최대 스폰 수
 			m_StaticInfo.nLMT = m_StaticInfo.pScenario->nMaxSpawnSameTime;		// 최대 동시 스폰 수
 		}
-		else 
+		else
 			ASSERT(0);
 
 		m_StaticInfo.fNPC_TC = MQuestFormula::CalcTC(m_StaticInfo.nQL);
@@ -539,9 +547,9 @@ void MQuestLevel::OnItemCreated(unsigned long int nItemID, int nRentPeriodHour)
 	m_DynamicInfo.ItemMap.insert(make_pair(nItemID, pNewItem));
 }
 
-bool MQuestLevel::OnItemObtained( MMatchObject* pPlayer, unsigned long int nItemID )
+bool MQuestLevel::OnItemObtained(MMatchObject* pPlayer, unsigned long int nItemID)
 {
-	if( 0 == pPlayer ) return false;
+	if (0 == pPlayer) return false;
 
 	for (MQuestLevelItemMap::iterator itor = m_DynamicInfo.ItemMap.lower_bound(nItemID);
 		itor != m_DynamicInfo.ItemMap.upper_bound(nItemID); ++itor)
@@ -554,7 +562,7 @@ bool MQuestLevel::OnItemObtained( MMatchObject* pPlayer, unsigned long int nItem
 			return true;
 		}
 	}
-	
+
 	// 만약 false이면 플레이어가 치팅을 하는 것임..-_-;
 	return false;
 }

@@ -8,11 +8,11 @@
  *			를 사용해 에러 상태를 저장한다.
  ********************************************************************/
 
-/*
-#ifdef _USE_MFC
-#include "stdafx.h"
-#endif
-*/
+ /*
+ #ifdef _USE_MFC
+ #include "stdafx.h"
+ #endif
+ */
 #include "stdafx.h"
 #include "stdio.h"
 #include "string.h"
@@ -36,38 +36,59 @@ static char g_pGetLastErrStr[256];
 	pLastModification	에러가 일어난 파일의 최근 수정일(__TIMESTAMP__)
 	pErrStr				에러 스트링(에러코드 + _KSTR or _ESTR)
 */
-void _SetError(int nErrCode,const char *pErrSubStr,const char *pFileName,int nLineNum,const char *pLastModification,const char *pErrStr)
+void _SetError(int nErrCode, const char* pErrSubStr, const char* pFileName, int nLineNum, const char* pLastModification, const char* pErrStr)
 {
-#ifdef _WIN32
-	LPVOID lpMsgBuf;
-#endif
+	// Set error code
+	g_nErrCode = nErrCode;
 
-	g_nErrCode=nErrCode;
-	if(pErrSubStr!=NULL)
-		strcpy(g_pErrSubStr,pErrSubStr);
-	strcpy(g_pFileName,pFileName);
-	g_nLineNum=nLineNum;
-	strcpy(g_pLastModification,pLastModification);
-	strcpy(g_pErrStr,pErrStr);
+	// Safely copy the error substrings to avoid buffer overflow
+	if (pErrSubStr != NULL) {
+		strncpy(g_pErrSubStr, pErrSubStr, sizeof(g_pErrSubStr) - 1);
+		g_pErrSubStr[sizeof(g_pErrSubStr) - 1] = '\0';  // Ensure null-termination
+	}
+
+	strncpy(g_pFileName, pFileName, sizeof(g_pFileName) - 1);
+	g_pFileName[sizeof(g_pFileName) - 1] = '\0';
+
+	g_nLineNum = nLineNum;
+
+	strncpy(g_pLastModification, pLastModification, sizeof(g_pLastModification) - 1);
+	g_pLastModification[sizeof(g_pLastModification) - 1] = '\0';
+
+	strncpy(g_pErrStr, pErrStr, sizeof(g_pErrStr) - 1);
+	g_pErrStr[sizeof(g_pErrStr) - 1] = '\0';
 
 #ifdef _WIN32
-	// Win32 GetLastErr...
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(LPTSTR) &lpMsgBuf, 0, NULL );// Display the string.
-	sprintf(g_pGetLastErrStr, "%s", lpMsgBuf);
-	LocalFree( lpMsgBuf );
+	// Win32 GetLastError handling
+	LPVOID lpMsgBuf = nullptr;
+	DWORD dwFormatResult = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		GetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPSTR)&lpMsgBuf, 0, NULL);
+
+	if (dwFormatResult != 0 && lpMsgBuf != NULL) {
+		// Safely copy the error message
+		strncpy(g_pGetLastErrStr, (char*)lpMsgBuf, sizeof(g_pGetLastErrStr) - 1);
+		g_pGetLastErrStr[sizeof(g_pGetLastErrStr) - 1] = '\0';  // Ensure null-termination
+	}
+	else {
+		// If FormatMessage fails, provide a fallback error message
+		strncpy(g_pGetLastErrStr, "Unknown error", sizeof(g_pGetLastErrStr) - 1);
+		g_pGetLastErrStr[sizeof(g_pGetLastErrStr) - 1] = '\0';
+	}
+
+	// Free the buffer allocated by FormatMessage
+	if (lpMsgBuf != nullptr) {
+		LocalFree(lpMsgBuf);
+	}
 #endif
 }
-
-/*
-부가 에러 스트링 지정
-	pErrSubStr			에러 코드에 따른 부가 스트링
-*/
-void SetErrorSubStr(const char *pErrSubStr)
+void SetErrorSubStr(const char* pErrSubStr)
 {
-	if(pErrSubStr!=NULL)
-		strcpy(g_pErrSubStr,pErrSubStr);
+	if (pErrSubStr != NULL)
+		strcpy(g_pErrSubStr, pErrSubStr);
 }
 
 /*
@@ -81,7 +102,7 @@ int GetErrorCode(void)
 /*
 에러 스트링 얻기
 */
-char *GetErrorString(void)
+char* GetErrorString(void)
 {
 	return g_pErrStr;
 }
@@ -89,7 +110,7 @@ char *GetErrorString(void)
 /*
 부가 에러 스트링 얻기
 */
-char *GetErrorSubString(void)
+char* GetErrorSubString(void)
 {
 	return g_pErrSubStr;
 }
@@ -97,7 +118,7 @@ char *GetErrorSubString(void)
 /*
 에러가 난 파일명 얻기
 */
-char *GetFileName(void)
+char* GetFileName(void)
 {
 	return g_pFileName;
 }
@@ -113,7 +134,7 @@ int GetLineNumber(void)
 /*
 에러가 난 파일의 최근 수정 일 얻기
 */
-char *GetLastModification(void)
+char* GetLastModification(void)
 {
 	return g_pLastModification;
 }
@@ -124,20 +145,20 @@ char *GetLastModification(void)
 */
 void ErrMsgBox(HWND hWnd)
 {
-	char strTemp[1024]={0,};
+	char strTemp[1024] = { 0, };
 
-	if( g_nErrCode == CM_OK ) return;
+	if (g_nErrCode == CM_OK) return;
 
-	sprintf(strTemp,"[ %d ]  %s\n",g_nErrCode,g_pErrStr);
-	if(g_pErrSubStr[0]!=0)
-		sprintf(strTemp,"%s\nSecond Error Message	: %s\n",strTemp,g_pErrSubStr);
+	sprintf(strTemp, "[ %d ]  %s\n", g_nErrCode, g_pErrStr);
+	if (g_pErrSubStr[0] != 0)
+		sprintf(strTemp, "%s\nSecond Error Message	: %s\n", strTemp, g_pErrSubStr);
 	// Win32 GetLastErr...
 	sprintf(strTemp, "%s\nGet Last Error		: %s", strTemp, g_pGetLastErrStr);
 #ifdef _DEBUG
-	sprintf(strTemp,"%s\n\nError Occured Source	: %s ( %d line )",strTemp,g_pFileName,g_nLineNum);
-	sprintf(strTemp,"%s\nLast Modify Date		: %s",strTemp,g_pLastModification);
+	sprintf(strTemp, "%s\n\nError Occured Source	: %s ( %d line )", strTemp, g_pFileName, g_nLineNum);
+	sprintf(strTemp, "%s\nLast Modify Date		: %s", strTemp, g_pLastModification);
 #endif
 
-	MessageBox(hWnd,strTemp,ERROR_MESSAGE_TITLE,MB_ICONERROR);
+	MessageBox(hWnd, strTemp, ERROR_MESSAGE_TITLE, MB_ICONERROR);
 }
 #endif	/* _WIN32 */

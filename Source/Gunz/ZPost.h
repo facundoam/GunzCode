@@ -1178,27 +1178,6 @@ inline void ZPostRequestMonsterBibleInfo( const MUID& uid )
 	ZPOSTCMD1( MC_MATCH_REQUEST_MONSTER_BIBLE_INFO, MCmdParamUID(uid) );
 }
 
-inline void ZPostResponseXTrapSeedKey(unsigned char *szComBuf)			// Update sgk 0706
-{
-	void *pBlob = MMakeBlobArray(sizeof(unsigned char), 128);
-	unsigned char *pCmdBlock = (unsigned char*)MGetBlobArrayElement(pBlob, 0);
-	CopyMemory(pCmdBlock, szComBuf, 128);
-
-	ZPOSTCMD1(MC_RESPONSE_XTRAP_SEEDKEY, MCommandParameterBlob(pBlob, MGetBlobArraySize(pBlob)));
-
-	MEraseBlobArray(pBlob);
-}
-
-inline void ZPsotResponseGameguardAuht( const DWORD dwIndex, const DWORD dwValue1, const DWORD dwValue2, const DWORD dwValue3 )
-{
-	ZPOSTCMD4( MC_RESPONSE_GAMEGUARD_AUTH, MCmdParamUInt(dwIndex), MCmdParamUInt(dwValue1), MCmdParamUInt(dwValue2), MCmdParamUInt(dwValue3) );
-}
-
-
-inline void ZPostResponseFirstGameguardAuth( const DWORD dwIndex, const DWORD dwValue1, const DWORD dwValue2, const DWORD dwValue3 )
-{
-	ZPOSTCMD4( MC_RESPONSE_FIRST_GAMEGUARD_AUTH, MCmdParamUInt(dwIndex), MCmdParamUInt(dwValue1), MCmdParamUInt(dwValue2), MCmdParamUInt(dwValue3) );
-}
 
 inline void ZPostRequestGamble( const MUID& uid)
 {

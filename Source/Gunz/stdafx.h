@@ -64,11 +64,6 @@
 #endif
 
 
-#ifdef _DEBUG
-// #define _XTRAP // 테스트 하기 위해서. by sunge
-// #define _HSHIELD // 테스트 하기 위해서. by sunge
-// #define _XTRAP
-#endif
 
 // stl
 #include <list>

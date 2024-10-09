@@ -12,27 +12,29 @@
 ///////////////////////////////////////////////////////////////////////
 // CMLog
 
-static CMLog *pCurrentLog = NULL;
+static CMLog* pCurrentLog = NULL;
 
-void SetLogHandler( CMLog *pLog )
+void SetLogHandler(CMLog* pLog)
 {
-	if(pLog){
-		if( pCurrentLog ) pCurrentLog->Shutdown();
+	if (pLog) {
+		if (pCurrentLog) pCurrentLog->Shutdown();
 		pCurrentLog = pLog;
 		pCurrentLog->Init();
 	}
 }
 
-void Log( const char *pFormat, ... )
+void Log(const char* pFormat, ...)
 {
 	va_list args;
 	char szTemp[256];
 
-	if(pCurrentLog){
+	if (pCurrentLog) {
 		va_start(args, pFormat);
-		vsprintf(szTemp, pFormat, args);
+		// Use _vsnprintf_s for safer formatting with buffer size
+		_vsnprintf_s(szTemp, sizeof(szTemp), _TRUNCATE, pFormat, args);
 		va_end(args);
 
+		// Call the Print function with the formatted string
 		pCurrentLog->Print(szTemp);
 	}
 }

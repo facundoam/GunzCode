@@ -17,8 +17,6 @@
 #include "ZWorldItem.h"
 #include "MMatchWorlditemdesc.h"
 #include "MMatchQuestMonsterGroup.h"
-#include "ZSecurity.h"
-//#include "MActionKey.h"
 #include "ZReplay.h"
 #include "ZTestGame.h"
 #include "ZGameClient.h"
@@ -653,12 +651,6 @@ BirdGo:
 	etcLoading.UpdateAndDraw(1.f);
 #endif
 
-	//CoInitialize(NULL);
-
-//	ZGetInitialLoading()->SetPercentage( 40.0f );
-//	ZGetInitialLoading()->Draw( MODE_DEFAULT, 0 , true );
-//	loadingProgress.UpdateAndDraw(1.f);
-
 	ZGetEmblemInterface()->Create();
 
 	__EP(2006);
@@ -666,14 +658,6 @@ BirdGo:
 	__EP(2000);
 
 	__SAVEPROFILE("profile_loading.txt");
-
-	if (ZCheckFileHack() == true)
-	{
-		MLog("File Check Failed\n");
-		return false;
-	}
-
-	ZSetupDataChecker_Global(&m_GlobalDataChecker);
 
 
 #ifdef LOCALE_NHNUSA
@@ -895,9 +879,9 @@ void ZApplication::Exit()
 
 // 리소스 로딩전에 실행된다..
 
-void ZApplication::PreCheckArguments()
+void ZApplication::PreCheckArguments() const
 {
-	char *str;
+	const char *str;
 
 	str=strstr(m_szCmdLine,ZTOKEN_FAST_LOADING);
 

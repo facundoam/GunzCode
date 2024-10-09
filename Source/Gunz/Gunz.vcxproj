@@ -296,13 +296,14 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>fmodvc.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)Gunzd.exe</OutputFile>
+      <OutputFile>$(OutDir)Gunz.exe</OutputFile>
       <AdditionalLibraryDirectories>../MatchServer/vld;../sdk/dx9/lib;../RealSpace2\lib;../RealSound/Lib;Dxerr8.lib;Lib;../../sdk/crypto/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libc.lib;libci.lib;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)Gunzd.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_tracememory|Win32'">
@@ -734,12 +735,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CGLEncription.h" />
-    <ClInclude Include="CheckReturnCallStack.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="extern\NetmarbleJP\NMCrypt.h" />
     <ClInclude Include="extern\Netmarble\NMCrypt.h" />
-    <ClInclude Include="GameGuard\NPGameLib.h" />
-    <ClInclude Include="HShield\HShield.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MCommandLogFrame.h" />
     <ClInclude Include="MEmblemMgr.h" />
@@ -751,17 +749,13 @@
     <ClInclude Include="nhn\HanPollForClient.h" />
     <ClInclude Include="nhn\HanReportForClient.h" />
     <ClInclude Include="Physics.h" />
-    <ClInclude Include="PrivateKey.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
     <ClInclude Include="resource2.h" />
-    <ClInclude Include="SecurityTest.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="upnp.h" />
     <ClInclude Include="VersionNo.h" />
     <ClInclude Include="vld.h" />
-    <ClInclude Include="XTrap\XTrap4Launcher.h" />
-    <ClInclude Include="XTrap\Xtrap_C_Interface.h" />
     <ClInclude Include="ZActionDef.h" />
     <ClInclude Include="ZActionKey.h" />
     <ClInclude Include="ZActor.h" />
@@ -779,8 +773,6 @@
     <ClInclude Include="ZBehavior_Idle.h" />
     <ClInclude Include="ZBehavior_Patrol.h" />
     <ClInclude Include="ZBehavior_Script.h" />
-    <ClInclude Include="ZBirdDummyAI.h" />
-    <ClInclude Include="ZBirdDummyClient.h" />
     <ClInclude Include="ZBitmapManager.h" />
     <ClInclude Include="ZBmNumLabel.h" />
     <ClInclude Include="ZBrain.h" />
@@ -842,7 +834,6 @@
     <ClInclude Include="ZGameAction.h" />
     <ClInclude Include="ZGameClient.h" />
     <ClInclude Include="ZGameConst.h" />
-    <ClInclude Include="ZGameGuard.h" />
     <ClInclude Include="ZGameInput.h" />
     <ClInclude Include="ZGameInterface.h" />
     <ClInclude Include="ZGameOnJPAuth.h" />
@@ -942,7 +933,6 @@
     <ClInclude Include="ZScoreListBox.h" />
     <ClInclude Include="ZScreenDebugger.h" />
     <ClInclude Include="ZScreenEffectManager.h" />
-    <ClInclude Include="ZSecurity.h" />
     <ClInclude Include="ZServerView.h" />
     <ClInclude Include="ZShadow.h" />
     <ClInclude Include="ZShop.h" />
@@ -995,7 +985,6 @@
     <ClCompile Include="Mint4R2.cpp" />
     <ClCompile Include="MSysInfo.cpp" />
     <ClCompile Include="Physics.cpp" />
-    <ClCompile Include="SecurityTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='BRZ_Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='BRZ_Release_publish|Win32'">Create</PrecompiledHeader>
@@ -1028,9 +1017,6 @@
     <ClCompile Include="ZBehavior_Idle.cpp" />
     <ClCompile Include="ZBehavior_Patrol.cpp" />
     <ClCompile Include="ZBehavior_Script.cpp" />
-    <ClCompile Include="ZBirdDummyAI.cpp" />
-    <ClCompile Include="ZBirdDummyClient.cpp" />
-    <ClCompile Include="ZBirdTest.cpp" />
     <ClCompile Include="ZBitmapManager.cpp" />
     <ClCompile Include="ZBmNumLabel.cpp" />
     <ClCompile Include="ZBrain.cpp" />
@@ -1092,7 +1078,6 @@
     <ClCompile Include="ZGameClient_DuelTournament.cpp" />
     <ClCompile Include="ZGameClient_Ladder.cpp" />
     <ClCompile Include="ZGameClient_OnCommand.cpp" />
-    <ClCompile Include="ZGameGuard.cpp" />
     <ClCompile Include="ZGameInput.cpp" />
     <ClCompile Include="ZGameInput_Debug.cpp" />
     <ClCompile Include="ZGameInterface.cpp" />
@@ -1189,7 +1174,6 @@
     <ClCompile Include="ZScoreListBox.cpp" />
     <ClCompile Include="ZScreenDebugger.cpp" />
     <ClCompile Include="ZScreenEffectManager.cpp" />
-    <ClCompile Include="ZSecurity.cpp" />
     <ClCompile Include="ZServerView.cpp" />
     <ClCompile Include="ZShadow.cpp" />
     <ClCompile Include="ZShop.cpp" />
@@ -1231,6 +1215,7 @@
     <ClCompile Include="ZWorldManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="runtime\shader\skin.vsh">
       <FileType>Document</FileType>
     </None>
@@ -1260,16 +1245,10 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="fmodvc.lib" />
-    <Library Include="HShield\HShield.lib" />
     <Library Include="nhn\HanAuthForClient.lib" />
     <Library Include="nhn\HanAuthForClientD.lib" />
     <Library Include="nhn\HanReportForClient.lib" />
     <Library Include="nhn\HanReportForClientD.lib" />
-    <Library Include="XTrap\XTrap4Client_ClientPart_mt.lib" />
-    <Library Include="XTrap\XTrap4Client_mt.lib" />
-    <Library Include="XTrap\XTrap4Client_ServerPart_mt.lib" />
-    <Library Include="XTrap\XTrap4Launcher_mt.lib" />
-    <Library Include="XTrap\XTrap_Unipher_mt.lib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Runtime\Gunz.exe.manifest" />

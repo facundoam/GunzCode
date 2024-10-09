@@ -150,7 +150,7 @@ BOOL Package::Open( char *szFileName )
 	}
 
 #ifdef _DEBUG
-	sprintf( szMessage, "Package : Success to open package. It contains %d file(s).\n", m_nFiles );
+	sprintf_s( szMessage, "Package : Success to open package. It contains %d file(s).\n", m_nFiles );
 	OutputDebugString(szMessage);
 #endif
 
@@ -223,7 +223,7 @@ LPPAKDATA Package::GetPakData(char* Name)
 		pInfo = m_FileList.Get(i);
 
 		if(pInfo) {
-			if(stricmp(Name,pInfo->pszAlias)==0) {
+			if(_stricmp(Name,pInfo->pszAlias)==0) {
 
 				pStartPointer = m_mmf.GetStartFilePointer();
 				pStartPointer += sizeof(PAKFILEHEADER)+sizeof(PAKDATAINFO)*m_nFiles+pInfo->ulOffset;

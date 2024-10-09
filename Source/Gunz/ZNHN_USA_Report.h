@@ -15,7 +15,6 @@ public :
 	bool InitReport( const char* szUserID, const char* pszGameStr );
 
 	void ReportStartGame();
-	void ReportInitGameGuard();
 	void ReportInitComplete();
 	void ReportCreateGameScreen();
 	void ReportDisplayServerList();

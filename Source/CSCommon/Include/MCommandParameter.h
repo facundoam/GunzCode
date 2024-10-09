@@ -1,4 +1,4 @@
-#ifndef ASCOMMANDPARAMETER_H
+ï»¿#ifndef ASCOMMANDPARAMETER_H
 #define ASCOMMANDPARAMETER_H
 
 #include "MUID.h"
@@ -8,39 +8,39 @@
 class MCommandParamCondition;
 class MCommandParamConditionMinMax;
 
-/// Ä¿¸Çµå ÆÄ¶ó¹ÌÅÍ Å¸ÀÔ
-enum MCommandParameterType{
-	MPT_INT		= 0,
-	MPT_UINT	= 1,
-	MPT_FLOAT	= 2,
-	MPT_BOOL	= 3,
-	MPT_STR		= 4,
-	MPT_VECTOR	= 5,
-	MPT_POS		= 6,
-	MPT_DIR		= 7,
-	MPT_COLOR	= 8,
-	MPT_UID		= 9,
-	MPT_BLOB	= 10,
+/// ì»¤ë§¨ë“œ íŒŒë¼ë¯¸í„° íƒ€ì…
+enum MCommandParameterType {
+	MPT_INT = 0,
+	MPT_UINT = 1,
+	MPT_FLOAT = 2,
+	MPT_BOOL = 3,
+	MPT_STR = 4,
+	MPT_VECTOR = 5,
+	MPT_POS = 6,
+	MPT_DIR = 7,
+	MPT_COLOR = 8,
+	MPT_UID = 9,
+	MPT_BLOB = 10,
 
-	MPT_CHAR	= 11,
-	MPT_UCHAR	= 12,
-	MPT_SHORT	= 13,
-	MPT_USHORT	= 14,
-	MPT_INT64	= 15,
-	MPT_UINT64	= 16,
-	// ¼ıÀÚ´Â °íÁ¤µÈ °ªÀÌ´Ù. (È®ÀåÀº °¡´ÉÇÏµÇ ¼öÁ¤Àº ºÒ°¡, ±âÁ¸ ¸®ÇÃ·¹ÀÌ ¶§¹®)
+	MPT_CHAR = 11,
+	MPT_UCHAR = 12,
+	MPT_SHORT = 13,
+	MPT_USHORT = 14,
+	MPT_INT64 = 15,
+	MPT_UINT64 = 16,
+	// ìˆ«ìëŠ” ê³ ì •ëœ ê°’ì´ë‹¤. (í™•ì¥ì€ ê°€ëŠ¥í•˜ë˜ ìˆ˜ì •ì€ ë¶ˆê°€, ê¸°ì¡´ ë¦¬í”Œë ˆì´ ë•Œë¬¸)
 
-	MPT_SVECTOR	= 17,
-	MPT_END		= 18,		///< ÆÄ¶ó¹ÌÅÍ Å¸ÀÔ ÃÑ °¹¼ö
+	MPT_SVECTOR = 17,
+	MPT_END = 18,		///< íŒŒë¼ë¯¸í„° íƒ€ì… ì´ ê°¯ìˆ˜
 };
 
-#define MAX_BLOB_SIZE		(0x100000)			// 1¸Ş°¡¹ÙÀÌÆ®
+#define MAX_BLOB_SIZE		(0x100000)			// 1ë©”ê°€ë°”ì´íŠ¸
 
 
 
 
 /// Command Parameter Description
-class MCommandParameterDesc{
+class MCommandParameterDesc {
 protected:
 	MCommandParameterType				m_nType;
 	char								m_szDescription[64];
@@ -50,8 +50,8 @@ public:
 	MCommandParameterDesc(MCommandParameterType nType, char* szDescription);
 	virtual ~MCommandParameterDesc(void);
 
-	MCommandParameterType GetType(void){ return m_nType; }
-	const char* GetDescription(void){ return m_szDescription; }
+	MCommandParameterType GetType(void) { return m_nType; }
+	const char* GetDescription(void) { return m_szDescription; }
 
 	void AddCondition(MCommandParamCondition* pCondition);
 	bool HasConditions() { return (!m_Conditions.empty()); }
@@ -62,35 +62,35 @@ public:
 
 
 /// Command Parameter Abstract Class
-class MCommandParameter{
+class MCommandParameter {
 protected:
 	MCommandParameterType	m_nType;
 public:
-	MCommandParameter(MCommandParameterType nType){ m_nType = nType; }
-	virtual ~MCommandParameter(void){}
+	MCommandParameter(MCommandParameterType nType) { m_nType = nType; }
+	virtual ~MCommandParameter(void) {}
 
-	MCommandParameterType GetType(void){ return m_nType; }
+	MCommandParameterType GetType(void) { return m_nType; }
 
-	/// °°Àº ÆÄ¶ó¹ÌÆ¼ Å¸ÀÔÀ¸·Î º¹Á¦
+	/// ê°™ì€ íŒŒë¼ë¯¸í‹° íƒ€ì…ìœ¼ë¡œ ë³µì œ
 	virtual MCommandParameter* Clone(void) = 0;
-	/// °ª ¾ò¾î³»±â
+	/// ê°’ ì–»ì–´ë‚´ê¸°
 	virtual void GetValue(void* p) = 0;
-	/// ¸Ş¸ğ¸® ºí·°À¸·Î ÀúÀå
+	/// ë©”ëª¨ë¦¬ ë¸”ëŸ­ìœ¼ë¡œ ì €ì¥
 	virtual int GetData(char* pData, int nSize) = 0;
-	/// ¸Ş¸ğ¸® ºí·°À¸·Î ÁöÁ¤
+	/// ë©”ëª¨ë¦¬ ë¸”ëŸ­ìœ¼ë¡œ ì§€ì •
 	virtual int SetData(char* pData) = 0;
-	/// Ã¹ Æ÷ÀÎÅÍ ¾ò±â
-	virtual void *GetPointer(void) =0; 
+	/// ì²« í¬ì¸í„° ì–»ê¸°
+	virtual void* GetPointer(void) = 0;
 
-	/// Å¸ÀÔ ÀÌ¸§ ¾ò±â
+	/// íƒ€ì… ì´ë¦„ ì–»ê¸°
 	virtual const char* GetClassName(void) = 0;
-	/// ½ºÆ®¸µÀ¸·Î °ª ¾ò±â
+	/// ìŠ¤íŠ¸ë§ìœ¼ë¡œ ê°’ ì–»ê¸°
 	virtual void GetString(char* szValue) = 0;
-	/// »çÀÌÁî ¾ò±â
+	/// ì‚¬ì´ì¦ˆ ì–»ê¸°
 	virtual int GetSize() = 0;
 };
 
-/// Á¤¼ö ÆÄ¶ó¹ÌÅÍ
+/// ì •ìˆ˜ íŒŒë¼ë¯¸í„°
 class MCommandParameterInt : public MCommandParameter, public CMemPool<MCommandParameterInt> {
 public:
 	int		m_Value;
@@ -102,13 +102,13 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "Int"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%d", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "Int"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%d", m_Value); }
 	virtual int GetSize() { return sizeof(int); }
 };
 
-/// ¾ç¼ö
+/// ì–‘ìˆ˜
 class MCommandParameterUInt : public MCommandParameter, public CMemPool<MCommandParameterUInt> {
 public:
 	unsigned int		m_Value;
@@ -120,13 +120,13 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "UInt"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%u", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "UInt"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%u", m_Value); }
 	virtual int GetSize() { return sizeof(unsigned int); }
 };
 
-/// ¼Ò¼ö ÆÄ¶ó¹ÌÅÍ
+/// ì†Œìˆ˜ íŒŒë¼ë¯¸í„°
 class MCommandParameterFloat : public MCommandParameter, public CMemPool<MCommandParameterFloat> {
 public:
 	float	m_Value;
@@ -138,16 +138,16 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "Float"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%f", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "Float"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%f", m_Value); }
 	virtual int GetSize() { return sizeof(float); }
 };
 
-/// ½ºÆ®¸µ ÆÄ¶ó¹ÌÅÍ(65533ÀÌÇÏÀÇ ¹®ÀÚ)
-class MCommandParameterString : public MCommandParameter{
+/// ìŠ¤íŠ¸ë§ íŒŒë¼ë¯¸í„°(65533ì´í•˜ì˜ ë¬¸ì)
+class MCommandParameterString : public MCommandParameter {
 public:
-	char*	m_Value;
+	char* m_Value;
 public:
 	MCommandParameterString(void);
 	MCommandParameterString(const char* Value);
@@ -157,24 +157,24 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "String"; }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "String"; }
 	virtual void GetString(char* szValue)
-	{ 
-		// ÀÌÇÔ¼ö´Â ¹İµå½Ã szValue¹öÆÛÀÇ ±æÀÌ°¡ m_ValueÀÇ ±æÀÌº¸´Ù ±æ¾î¾ß ÇÔ.
-		// Áß¿äÇÏ ºÎºĞ¿¡ »ç¿ëµÉ½Ã´Â ¼±Çà°Ë»ç°¡ ¸ÕÁ® ÀÌ·ç¾îÁ®¾ß ÇÔ. - by Ãß±³¼º.
-		if( 0 != szValue )
+	{
+		// ì´í•¨ìˆ˜ëŠ” ë°˜ë“œì‹œ szValueë²„í¼ì˜ ê¸¸ì´ê°€ m_Valueì˜ ê¸¸ì´ë³´ë‹¤ ê¸¸ì–´ì•¼ í•¨.
+		// ì¤‘ìš”í•˜ ë¶€ë¶„ì— ì‚¬ìš©ë ì‹œëŠ” ì„ í–‰ê²€ì‚¬ê°€ ë¨¼ì ¸ ì´ë£¨ì–´ì ¸ì•¼ í•¨. - by ì¶”êµì„±.
+		if (0 != szValue)
 		{
-			if( 0 != m_Value )
-				strcpy(szValue, m_Value); 
-			else 
-				strcpy(szValue, "\0" );
+			if (0 != m_Value)
+				strcpy(szValue, m_Value);
+			else
+				strcpy(szValue, "\0");
 		}
 	}
 	virtual int GetSize();
 };
 
-/// 3D º¤ÅÍ ÆÄ¶ó¹ÌÅÍ
+/// 3D ë²¡í„° íŒŒë¼ë¯¸í„°
 class MCommandParameterVector : public MCommandParameter {
 public:
 	float	m_fX;
@@ -182,53 +182,53 @@ public:
 	float	m_fZ;
 public:
 	MCommandParameterVector(void);
-	MCommandParameterVector(float x ,float y, float z);
+	MCommandParameterVector(float x, float y, float z);
 	virtual ~MCommandParameterVector(void);
 
 	virtual MCommandParameter* Clone(void);
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_fX; }
-	virtual const char* GetClassName(void){ return "Vector"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%.2f,%.2f,%.2f", m_fX, m_fY, m_fZ); }
-	virtual int GetSize() { return (sizeof(float)*3); }
+	virtual void* GetPointer() { return &m_fX; }
+	virtual const char* GetClassName(void) { return "Vector"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%.2f,%.2f,%.2f", m_fX, m_fY, m_fZ); }
+	virtual int GetSize() { return (sizeof(float) * 3); }
 };
 
-/// 3D Æ÷Áö¼Ç ÆÄ¶ó¹ÌÅÍ
+/// 3D í¬ì§€ì…˜ íŒŒë¼ë¯¸í„°
 class MCommandParameterPos : public MCommandParameterVector, public CMemPool<MCommandParameterPos> {
 public:
-	MCommandParameterPos(void) : MCommandParameterVector() { m_nType=MPT_POS; }
-	MCommandParameterPos(float x, float y, float z) : MCommandParameterVector(x, y, z){ m_nType=MPT_POS; }
+	MCommandParameterPos(void) : MCommandParameterVector() { m_nType = MPT_POS; }
+	MCommandParameterPos(float x, float y, float z) : MCommandParameterVector(x, y, z) { m_nType = MPT_POS; }
 	virtual ~MCommandParameterPos() { }
 
-	virtual MCommandParameter* Clone(void){ return new MCommandParameterPos(m_fX, m_fY, m_fZ); }
-	virtual const char* GetClassName(void){ return "Pos"; }
+	virtual MCommandParameter* Clone(void) { return new MCommandParameterPos(m_fX, m_fY, m_fZ); }
+	virtual const char* GetClassName(void) { return "Pos"; }
 };
 
-/// 3D µğ·º¼Ç ÆÄ¶ó¹ÌÅÍ
+/// 3D ë””ë ‰ì…˜ íŒŒë¼ë¯¸í„°
 class MCommandParameterDir : public MCommandParameterVector, public CMemPool<MCommandParameterDir> {
 public:
-	MCommandParameterDir(void) : MCommandParameterVector() { m_nType=MPT_DIR; }
-	MCommandParameterDir(float x, float y, float z) : MCommandParameterVector(x, y, z){ m_nType=MPT_DIR; }
+	MCommandParameterDir(void) : MCommandParameterVector() { m_nType = MPT_DIR; }
+	MCommandParameterDir(float x, float y, float z) : MCommandParameterVector(x, y, z) { m_nType = MPT_DIR; }
 	virtual ~MCommandParameterDir() { }
 
-	virtual MCommandParameter* Clone(void){ return new MCommandParameterDir(m_fX, m_fY, m_fZ); }
-	virtual const char* GetClassName(void){ return "Dir"; }
+	virtual MCommandParameter* Clone(void) { return new MCommandParameterDir(m_fX, m_fY, m_fZ); }
+	virtual const char* GetClassName(void) { return "Dir"; }
 };
 
-/// RGB ÄÃ·¯ ÆÄ¶ó¹ÌÅÍ(³ªÁß¿¡ Alpha°ª Ãß°¡µÉ ¿¹Á¤)
+/// RGB ì»¬ëŸ¬ íŒŒë¼ë¯¸í„°(ë‚˜ì¤‘ì— Alphaê°’ ì¶”ê°€ë  ì˜ˆì •)
 class MCommandParameterColor : public MCommandParameterVector, public CMemPool<MCommandParameterColor> {
 public:
-	MCommandParameterColor(void) : MCommandParameterVector() { m_nType=MPT_COLOR; }
-	MCommandParameterColor(float r, float g, float b) : MCommandParameterVector(r, g, b){ m_nType=MPT_COLOR; }
+	MCommandParameterColor(void) : MCommandParameterVector() { m_nType = MPT_COLOR; }
+	MCommandParameterColor(float r, float g, float b) : MCommandParameterVector(r, g, b) { m_nType = MPT_COLOR; }
 	virtual ~MCommandParameterColor() { }
 
-	virtual MCommandParameter* Clone(void){ return new MCommandParameterColor(m_fX, m_fY, m_fZ); }
-	virtual const char* GetClassName(void){ return "Color"; }
+	virtual MCommandParameter* Clone(void) { return new MCommandParameterColor(m_fX, m_fY, m_fZ); }
+	virtual const char* GetClassName(void) { return "Color"; }
 };
 
-/// Bool ÆÄ¶ó¹ÌÅÍ
+/// Bool íŒŒë¼ë¯¸í„°
 class MCommandParameterBool : public MCommandParameter, public CMemPool<MCommandParameterBool> {
 	bool	m_Value;
 public:
@@ -241,13 +241,13 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer(void); 
-	virtual const char* GetClassName(void){ return "Bool"; }
-	virtual void GetString(char* szValue){ if(m_Value==true) strcpy(szValue, "true"); else strcpy(szValue, "false"); }
+	virtual void* GetPointer(void);
+	virtual const char* GetClassName(void) { return "Bool"; }
+	virtual void GetString(char* szValue) { if (m_Value == true) strcpy(szValue, "true"); else strcpy(szValue, "false"); }
 	virtual int GetSize() { return sizeof(bool); }
 };
 
-/// MUID ÆÄ¶ó¹ÌÅÍ
+/// MUID íŒŒë¼ë¯¸í„°
 class MCommandParameterUID : public MCommandParameter, public CMemPool<MCommandParameterUID> {
 public:
 	MUID	m_Value;
@@ -260,15 +260,15 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "UID"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%u:%u", m_Value.High, m_Value.Low); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "UID"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%u:%u", m_Value.High, m_Value.Low); }
 	virtual int GetSize() { return sizeof(MUID); }
 };
 
-class MCommandParameterBlob : public MCommandParameter{
+class MCommandParameterBlob : public MCommandParameter {
 public:
-	void*	m_Value;
+	void* m_Value;
 	unsigned int	m_nSize;
 public:
 	MCommandParameterBlob(void);
@@ -279,14 +279,14 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return m_Value; }
-	virtual const char* GetClassName(void){ return "Blob"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%02X%02X..", *((unsigned char*)(m_Value)), *((unsigned char*)(m_Value)+1)); }
+	virtual void* GetPointer() { return m_Value; }
+	virtual const char* GetClassName(void) { return "Blob"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%02X%02X..", *((unsigned char*)(m_Value)), *((unsigned char*)(m_Value)+1)); }
 	virtual int GetSize();
 };
 
 
-/// charÇü ÆÄ¶ó¹ÌÅÍ
+/// charí˜• íŒŒë¼ë¯¸í„°
 class MCommandParameterChar : public MCommandParameter, public CMemPool<MCommandParameterChar>
 {
 public:
@@ -299,14 +299,14 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "Char"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%d", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "Char"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%d", m_Value); }
 	virtual int GetSize() { return sizeof(char); }
 };
 
 
-/// unsigned charÇü ÆÄ¶ó¹ÌÅÍ
+/// unsigned charí˜• íŒŒë¼ë¯¸í„°
 class MCommandParameterUChar : public MCommandParameter, public CMemPool<MCommandParameterUChar>
 {
 public:
@@ -319,14 +319,14 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "UChar"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%u", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "UChar"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%u", m_Value); }
 	virtual int GetSize() { return sizeof(unsigned char); }
 };
 
 
-/// shortÇü ÆÄ¶ó¹ÌÅÍ
+/// shortí˜• íŒŒë¼ë¯¸í„°
 class MCommandParameterShort : public MCommandParameter, public CMemPool<MCommandParameterShort>
 {
 public:
@@ -339,13 +339,13 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "Short"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%d", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "Short"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%d", m_Value); }
 	virtual int GetSize() { return sizeof(short); }
 };
 
-/// unsigned shortÇü ÆÄ¶ó¹ÌÅÍ
+/// unsigned shortí˜• íŒŒë¼ë¯¸í„°
 class MCommandParameterUShort : public MCommandParameter, public CMemPool<MCommandParameterUShort>
 {
 public:
@@ -358,14 +358,14 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "UShort"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%u", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "UShort"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%u", m_Value); }
 	virtual int GetSize() { return sizeof(unsigned short); }
 };
 
 
-/// int64Çü ÆÄ¶ó¹ÌÅÍ
+/// int64í˜• íŒŒë¼ë¯¸í„°
 class MCommandParameterInt64 : public MCommandParameter, public CMemPool<MCommandParameterInt64>
 {
 public:
@@ -378,13 +378,13 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "Int64"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%lld", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "Int64"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%lld", m_Value); }
 	virtual int GetSize() { return sizeof(int64); }
 };
 
-/// unsigned int64Çü ÆÄ¶ó¹ÌÅÍ
+/// unsigned int64í˜• íŒŒë¼ë¯¸í„°
 class MCommandParameterUInt64 : public MCommandParameter, public CMemPool<MCommandParameterUInt64>
 {
 public:
@@ -397,14 +397,14 @@ public:
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_Value; }
-	virtual const char* GetClassName(void){ return "UInt64"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%llu", m_Value); }
+	virtual void* GetPointer() { return &m_Value; }
+	virtual const char* GetClassName(void) { return "UInt64"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%llu", m_Value); }
 	virtual int GetSize() { return sizeof(uint64); }
 };
 
 
-/// shortÇü 3D º¤ÅÍ ÆÄ¶ó¹ÌÅÍ
+/// shortí˜• 3D ë²¡í„° íŒŒë¼ë¯¸í„°
 class MCommandParameterShortVector : public MCommandParameter, public CMemPool<MCommandParameterShortVector> {
 public:
 	short	m_nX;
@@ -412,18 +412,18 @@ public:
 	short	m_nZ;
 public:
 	MCommandParameterShortVector(void);
-	MCommandParameterShortVector(short x ,short y, short z);
-	MCommandParameterShortVector(float x ,float y, float z);	///< ³»ºÎ¿¡¼­ short·Î º¯È¯ÇØÁØ´Ù.
+	MCommandParameterShortVector(short x, short y, short z);
+	MCommandParameterShortVector(float x, float y, float z);	///< ë‚´ë¶€ì—ì„œ shortë¡œ ë³€í™˜í•´ì¤€ë‹¤.
 	virtual ~MCommandParameterShortVector(void);
 
 	virtual MCommandParameter* Clone(void);
 	virtual void GetValue(void* p);
 	virtual int GetData(char* pData, int nSize);
 	virtual int SetData(char* pData);
-	virtual void *GetPointer() { return &m_nX; }
-	virtual const char* GetClassName(void){ return "ShortVector"; }
-	virtual void GetString(char* szValue){ sprintf(szValue, "%d,%d,%d", m_nX, m_nY, m_nZ); }
-	virtual int GetSize() { return (sizeof(short)*3); }
+	virtual void* GetPointer() { return &m_nX; }
+	virtual const char* GetClassName(void) { return "ShortVector"; }
+	virtual void GetString(char* szValue) { sprintf(szValue, "%d,%d,%d", m_nX, m_nY, m_nZ); }
+	virtual int GetSize() { return (sizeof(short) * 3); }
 };
 
 

@@ -1238,7 +1238,7 @@ bool ZSurvival::OnSurvivalPrivateRanking(MCommand* pCmd)
 	if (nRank != 0)
 		sprintf(szText, "%d", nRank);
 	else
-		sprintf(szText, "--", nRank);
+		sprintf(szText, "--");
 	pWidgetRank->AddText(szText, MCOLOR( 0xFFFFFFCC));
 
 	sprintf(szText, "%d", nPoint);

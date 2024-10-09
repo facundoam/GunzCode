@@ -1,16 +1,4 @@
 #include "stdafx.h"
-//#include "../MatchServer/vld/vld.h"
-
-#ifdef _HSHIELD
-#include "HShield/HShield.h"
-#endif
-
-#ifdef _XTRAP
-#include "./XTrap/Xtrap_C_Interface.h"						// update sgk 0702 start
-#include "./XTrap/XTrap4Launcher.h"
-#pragma comment (lib, "./XTrap/XTrap4Launcher_mt.lib")
-#pragma comment (lib, "./XTrap/XTrap4Client_mt.lib")	// update sgk 0702 end
-#endif
 
 #include "ZPrerequisites.h"
 #include "ZConfiguration.h"
@@ -45,7 +33,6 @@
 #include "MCrashDump.h"
 #include "ZEffectFlashBang.h"
 #include "ZMsgBox.h"
-#include "ZSecurity.h"
 #include "ZStencilLight.h"
 #include "ZReplay.h"
 #include "ZUtil.h"
@@ -56,7 +43,6 @@
 #include "RShaderMgr.h"
 #endif
 
-//#include "mempool.h"
 #include "RLenzFlare.h"
 #include "ZLocale.h"
 #include "MSysInfo.h"
@@ -67,21 +53,10 @@
 #include "SecurityTest.h"
 #include "CheckReturnCallStack.h"
 
-#ifdef _DEBUG
-//jintriple3 메모리 릭 vld
-//#include "vld.h"
-#endif
 
-#ifdef _DEBUG
-RMODEPARAMS	g_ModeParams={640,480,false,D3DFMT_R5G6B5};
-//RMODEPARAMS	g_ModeParams={1024,768,false,RPIXELFORMAT_565};
-#else
+
 RMODEPARAMS	g_ModeParams={800,600,true,D3DFMT_R5G6B5};
-#endif
 
-#ifndef _DEBUG
-#define SUPPORT_EXCEPTIONHANDLING
-#endif
 
 
 #ifdef LOCALE_NHNUSA
@@ -90,9 +65,6 @@ RMODEPARAMS	g_ModeParams={800,600,true,D3DFMT_R5G6B5};
 #include "ZNHN_USA_Poll.h"
 #endif
 
-#ifdef _GAMEGUARD
-#include "ZGameguard.h"
-#endif
 void AntiShotbotLogger();
 RRESULT RenderScene(void *pParam);
 
@@ -108,15 +80,8 @@ Mint4Gunz		g_Mint;
 
 HRESULT GetDirectXVersionViaDxDiag( DWORD* pdwDirectXVersionMajor, DWORD* pdwDirectXVersionMinor, TCHAR* pcDirectXVersionLetter );
 
-void zexit(int returnCode)
+static void zexit(int returnCode)
 {
-	// 게임가드는 제대로 delete되어야 오류발생시 자체 로그를 올바르게 남길 수 있다.
-	// 그냥 exit()해도 ZGameGuard를 싱글턴으로 만들었기 때문에 소멸자에서 게임가드가 delete되지만 어째서인지 그때 크래시가 일어난다.
-	// exit()하기 전에 게임가드를 수동으로 해제하면 그런 문제가 일어나지 않는다.
-	// 해킹 검출 등의 이유로 클라이언트 종료시 exit하지말고 zexit를 쓰자.
-#ifdef _GAMEGUARD
-	GetZGameguard().Release();
-#endif
 	exit(returnCode);
 }
 
@@ -447,20 +412,6 @@ RRESULT OnUpdate(void* pParam)
 
 	const DWORD dwCurrUpdateTime = timeGetTime();
 
-#ifndef _DEBUG
-
-#ifdef _GAMEGUARD
-	if( !GetZGameguard().CheckGameGuardRunning(dwCurrUpdateTime) ||
-		!GetZGameguard().CheckD3dDllHooking(dwCurrUpdateTime) )
-	{
-		if( 0 != ZGetGameClient() ) 
-			ZGetGameClient()->Disconnect();
-
-		PostQuitMessage(0);
-	}
-#endif
-
-#endif
 	__EP(100);
 
 	return R_OK;
@@ -1115,92 +1066,8 @@ void CheckFileAssociation()
 	}
 }
 
-// 해당 텍스트 파일에 해당 글귀가 있으면 XTRAP 테스트 코드가 수행된다. (뒷구멍) //
-bool CheckXTrapIsGetTestCode()														// add sgk 0621
-{
-	char szBuf[256] = "";
-	FILE* fp = fopen("XTrapTest.txt", "rt");
-	if (fp)
-	{
-		fgets(szBuf, 256, fp);
-		mlog("XTrapTest.txt : \n");
-		mlog(szBuf);
-		mlog("\n");
-		fclose(fp);
 
-		if (stricmp(szBuf, "RUN_XTRAP_TEST_CODE") == 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		mlog("fail to open XTrapTest.txt\n");
-		return false;
-	}
-}
-
-void OnGetXTrapRealCodeArgv(char* szTemp, bool* bPatchSkip)							// add sgk 0621
-{
-	/* LOCALE_KOREA */
-	wsprintf(szTemp, "660970B478F9CB6395356D98440FE8629F86DDCD4DBB54B513680296C770DFCDB63DCCFE8DFE34B3A6B2BAA8CFB5C8C9761A2D3F1E491F9EFF6757489912B1AB0F7D04245246E409A061005FC9527B0823FF73E0B9F4C91EB67C40AC1A16EABB8FE52BDE25C76F6955E9E52A0812CE");
-
-#ifdef LOCALE_JAPAN
-	memset(szTemp, 0, 256);
-	wsprintf(szTemp, "660970B45869CA6395356D98440FE8624C8FEA6EF181FD7D095D6CBA9911AFB0B5661B972C3C82BB0FF2D47A32DFB56D407CB146190E29B1EA46F49C1E86160F0F7D04245246E409A061005FC9527B086EF578A8BCFCC91FB67C51F65E05AAB85F7E306086BDFF03DF1BA46A66C605FFBC6263206088B68D6930514A");
-#endif
-
-#ifdef LOCALE_US
-	memset(szTemp, 0, 256);
-	wsprintf(szTemp, "660970B497F9CB6395356D98440FE8629AE854BDDBD13EDCE69AC1898F7A23CEF138AD2BF2758B368950133F1B021D0D218BFB058146B32450591F8B22CBE6A2");
-	*bPatchSkip = true;
-#endif
-
-#ifdef LOCALE_INDIA
-	memset(szTemp, 0, 256);
-//	wsprintf(szTemp, "660970B47C69CB6795356D98440FE8625582AC40166A109C00E4D6A6056D18A02BBAC0A19DA6BEE6B4D43AD07CFB61697FD7FF586D98ECFF1DA11222DD82028D0F7D04245246E417A4610E569557620395165EECCBF7CD9008C4C0120CA7A0AD9D568C0DC8C7BD38C629B7EAAE5435B46105721F036F7C5BF0");
-	wsprintf(szTemp, "660970B47C69CB6795356D98490FE862FEBC286C65D77538F80891D97D18B65B43E538B6EADB14290A04CF119B162DE7AA91984B54023E368FB4C25D4A91F68A0F7D04245246E417A4610E569557620395165EECCBF7CD9008C4C0120CA7A0AD9D568C0DC8C7BD38C629B7EAAE5435B46105721F036F7C5BF0");
-#endif
-
-#ifdef LOCALE_BRAZIL
-	memset(szTemp, 0, 256);
-	wsprintf(szTemp, "660970B448FBCB6395356D98440FE8621A6EADB8532B3C5F1949386F921C6C0970FEF0A168B5352668BE414ADF1375136173F493A8A2C075AC0F919AC7241A650F7D04245246E401B574195DD31E6305975703051B9F4F5CA2A8046A5FF3331AB0C8F040AFA98BB5CE3134520AC79D1328E836DF645FC479");
-#endif
-}
-
-void OnGetXTrapTestCodeArgv(char* szTemp, bool* bPatchSkip)							// add sgk 0621
-{
-	/* LOCALE_KOREA */
-	wsprintf(szTemp, "660970B478F9CB6395356D98440FE8629F86DDCD4DBB54B513680296C770DFCDB63DCCFE8DFE34B3A6B2BAA8CFB5C8C9761A2D3F1E491F9EFF6757489912B1AB0F7D04245246E409A061005FC9527B0823FF73E0B9F4C91EB67C40AC1A16EABB8FE52BDE25C76F6955E9E52A0812A88323D4");
-
-#ifdef LOCALE_JAPAN
-	memset(szTemp, 0, 256);
-	wsprintf(szTemp, "660970B45869CA6395356D98440FE8624C8FEA6EF181FD7D095D6CBA9911AFB0B5661B972C3C82BB0FF2D47A32DFB56D407CB146190E29B1EA46F49C1E86160F0F7D04245246E409A061005FC9527B086EF578A8BCFCC91FB67C51F65E05AAB85F7E306086BDFF03DF1BA46A66C605FFBC6263206088B68D6930512C295649");
-#endif
-
-#ifdef LOCALE_US
-	memset(szTemp, 0, 256);
-	wsprintf(szTemp, "660970B497F9CB6395356D98440FE8629AE854BDDBD13EDCE69AC1898F7A23CEF138AD2BF2758B368950133F1B021D0D218BFB058146B32450591F8B22CBE6A2");
-	*bPatchSkip = true;
-#endif
-
-#ifdef LOCALE_INDIA
-	memset(szTemp, 0, 256);
-//	wsprintf(szTemp, "660970B47C69CB6795356D98440FE8625582AC40166A109C00E4D6A6056D18A02BBAC0A19DA6BEE6B4D43AD07CFB61697FD7FF586D98ECFF1DA11222DD82028D0F7D04245246E417A4610E569557620395165EECCBF7CD9008C4C0120CA7A0AD9D568C0DC8C7BD38C629B7EAAE5435B46105721F036F7C5B962980B7");
-	wsprintf(szTemp, "660970B47C69CB6795356D98490FE862FEBC286C65D77538F80891D97D18B65B43E538B6EADB14290A04CF119B162DE7AA91984B54023E368FB4C25D4A91F68A0F7D04245246E417A4610E569557620395165EECCBF7CD9008C4C0120CA7A0AD9D568C0DC8C7BD38C629B7EAAE5435B46105721F036F7C5B962980B7");
-#endif
-
-#ifdef LOCALE_BRAZIL
-	memset(szTemp, 0, 256);
-	wsprintf(szTemp, "660970B448FBCB6395356D98440FE8621A6EADB8532B3C5F1949386F921C6C0970FEF0A168B5352668BE414ADF1375136173F493A8A2C075AC0F919AC7241A650F7D04245246E401B574195DD31E6305975703051B9F4F5CA2A8046A5FF3331AB0C8F040AFA98BB5CE3134520AC79D1328E836DF645FC41F2B9A7E");
-#endif
-}
-
-void UpgradeMrsFile()
+static void UpgradeMrsFile()
 {
 	char temp_path[ 1024];
 	sprintf( temp_path,"*");
@@ -1211,11 +1078,6 @@ void UpgradeMrsFile()
 }
 
 HANDLE Mutex = 0;
-
-#ifdef _HSHIELD
-int __stdcall AhnHS_Callback(long lCode, long lParamSize, void* pParam);
-#endif
-
 DWORD g_dwMainThreadID;
 
 
@@ -1251,51 +1113,11 @@ bool InitPoll()
 	return true;
 }
 
-
-bool CheckGameGuardHackToolUser()
-{
-#ifdef _GAMEGUARD
-
-	string strUserID;
-	ZBaseAuthInfo* pAuth = ZGetLocale()->GetAuthInfo();
-
-	if ( pAuth == NULL)
-		return true;
-
-
-#ifdef LOCALE_NHNUSA
-
-#ifdef _DEBUG_NHN_USA_AUTH
-	return true;
-#endif
-
-	strUserID = ((ZNHN_USAAuthInfo*)pAuth)->GetUserID();
-
-#elif LOCALE_JAPAN
-
-//	strUserID = ((ZGameOnJPAuthInfo*)pAuth)->GetUserID();
-	return true;
-
-#endif
-
-
-	if( !GetZGameguard().CheckHackToolUser( strUserID.c_str()) )
-		return false;
-
-
-#endif	// _GAMEGUARD
-
-	return true;
-}
-
-
 //------------------------------------------- nhn usa end----------------------------------------------------------
 
 int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int cmdshow)
 {
 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-
-	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_CHECK_CRT_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_DELAY_FREE_MEM_DF);
 
 	InitLog(MLOGSTYLE_DEBUGSTRING|MLOGSTYLE_FILE);
 
@@ -1319,161 +1141,7 @@ int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int 
 	PathRemoveFileSpec(szModuleFileName);
 	SetCurrentDirectory(szModuleFileName);
 
-#ifndef _GAMEGUARD
-	#ifdef _PUBLISH
-		// 중복 실행 금지
-		Mutex = CreateMutex(NULL, TRUE, "Gunz");
-		if (GetLastError() == ERROR_ALREADY_EXISTS)
-		{
-			zexit(-1);
-			return 0;
-		}
-	#endif
-#endif
 
-#ifdef _HSHIELD
-
-	TCHAR szFullFileName[_MAX_DIR];
-	GetCurrentDirectory( sizeof( szFullFileName), szFullFileName);
-	strcat( szFullFileName, "\\HShield\\EhSvc.dll");
-
-	int nRet = 0;
-
-#ifdef _DEBUG
-#define AHNHS_CHKOPT_GUNZ		AHNHS_CHKOPT_SPEEDHACK
-#else
-#define AHNHS_CHKOPT_GUNZ		AHNHS_CHKOPT_ALL
-#endif
-
-#ifdef  LOCALE_BRAZIL					/* Brazil */
-	nRet = _AhnHS_Initialize(szFullFileName, AhnHS_Callback, 4001, "DA0EF49C0F6D029F", AHNHS_CHKOPT_GUNZ
-		| AHNHS_ALLOW_SVCHOST_OPENPROCESS | AHNHS_ALLOW_LSASS_OPENPROCESS | AHNHS_ALLOW_CSRSS_OPENPROCESS | AHNHS_DONOT_TERMINATE_PROCESS
-		, AHNHS_SPEEDHACK_SENSING_RATIO_NORMAL);
-
-#elif  LOCALE_INDIA						/* India */
-	nRet = _AhnHS_Initialize(szFullFileName, AhnHS_Callback, 4003, "CC4686AE10F63E4A", AHNHS_CHKOPT_GUNZ
-		| AHNHS_ALLOW_SVCHOST_OPENPROCESS | AHNHS_ALLOW_LSASS_OPENPROCESS | AHNHS_ALLOW_CSRSS_OPENPROCESS | AHNHS_DONOT_TERMINATE_PROCESS
-		, AHNHS_SPEEDHACK_SENSING_RATIO_NORMAL);
-#endif
-
-#ifndef _DEBUG
-	// 아래 코드는 릴리즈시 _AhnHS_Initialize 옵션이 AHNHS_CHKOPT_ALL로 되어있지 않을 경우 
-	// 컴파일 타임에 에러를 일으켜서 알 수 있게 한다.
-	void* OptionCheckTool[(AHNHS_CHKOPT_GUNZ == AHNHS_CHKOPT_ALL)?1:0];
-#endif
-
-	
-
-	//아래 에러는 개발과정에서만 발생할 수 있으면 
-	//이후 결코 발생해서는 안되는 에러이므로 assert처리를 했습니다.
-	assert(nRet != HS_ERR_INVALID_PARAM);
-	assert(nRet != HS_ERR_INVALID_LICENSE);
-	assert(nRet != HS_ERR_ALREADY_INITIALIZED);
-
-	TCHAR szTitle[256] = "Hack Shield Error";
-
-	if (nRet != HS_ERR_OK) 
-	{
-		//Error 처리 
-		switch(nRet)
-		{
-		case HS_ERR_ANOTHER_SERVICE_RUNNING:
-			{
-//				MessageBox(NULL, _T("다른 게임이 실행중입니다.\n프로그램을 종료합니다."), szTitle, MB_OK);
-				mlog( "다른 게임이 실행중입니다. 프로그램을 종료합니다.\n");
-				break;
-			}
-		case HS_ERR_INVALID_FILES:
-			{
-//				MessageBox(NULL, _T("잘못된 파일 설치되었습니다.\n프로그램을 재설치하시기 바랍니다."), szTitle, MB_OK);
-				mlog( "잘못된 파일 설치되었습니다. 프로그램을 재설치하시기 바랍니다.\n");
-				break;
-			}
-		case HS_ERR_DEBUGGER_DETECT:
-			{
-//				MessageBox(NULL, _T("컴퓨터에서 디버거 실행이 감지되었습니다.\n디버거의 실행을 중지시킨 뒤에 다시 실행시켜주시기바랍니다."), szTitle, MB_OK);
-				mlog( "컴퓨터에서 디버거 실행이 감지되었습니다. 디버거의 실행을 중지시킨 뒤에 다시 실행시켜주시기바랍니다.\n");
-				break;
-			}
-		case HS_ERR_NEED_ADMIN_RIGHTS:
-			{
-//				MessageBox(NULL, _T("Admin 권한으로 실행되어야 합니다.\n프로그램을 종료합니다."), szTitle, MB_OK);
-				mlog( "Admin 권한으로 실행되어야 합니다. 프로그램을 종료합니다.\n");
-				break;
-			}
-		case HS_ERR_COMPATIBILITY_MODE_RUNNING:
-			{
-//				MessageBox(NULL, _T("호환성 모드로 프로그램이 실행중입니다.\n프로그램을 종료합니다."), szTitle, MB_OK);
-				mlog( "호환성 모드로 프로그램이 실행중입니다. 프로그램을 종료합니다.\n");
-				break;				
-			}
-		default:
-			{
-				TCHAR szMsg[255];
-				wsprintf(szMsg, _T("해킹방지 기능에 문제가 발생하였습니다.(Error Code = %x)\n프로그램을 종료합니다."), nRet);
-//				MessageBox(NULL, szMsg, szTitle, MB_OK);
-				mlog( szMsg);
-				break;
-			}
-		}
-
-		return FALSE;
-	}
-
-	//시작 함수 호출 
-	nRet = _AhnHS_StartService();
-
-	assert(nRet != HS_ERR_NOT_INITIALIZED);
-	assert(nRet != HS_ERR_ALREADY_SERVICE_RUNNING);
-
-	if (nRet != HS_ERR_OK)
-	{
-//		TCHAR szMsg[255];
-		mlog(_T("해킹방지 기능에 문제가 발생하였습니다.(Error Code = %x)\n프로그램을 종료합니다."), nRet);
-//		MessageBox(NULL, szMsg, szTitle, MB_OK);
-
-		return FALSE;
-	}
-
-	nRet = _AhnHS_SaveFuncAddress(6, _AhnHS_Initialize, _AhnHS_StartService,			// 핵실드 함수
-										ZCheckHackProcess, ZGetMZFileChecksum,				// 핵판별 자체함수
-										ZSetupDataChecker_Global, ZSetupDataChecker_Game);
-	if(nRet != ERROR_SUCCESS)
-	{
-//		AfxMessageBox(_T("_AhnHS_SaveFuncAddress Failed!"));
-		return FALSE;
-	}
-#endif // _HSHIELD
-
-
-#ifdef _XTRAP														// update sgk 0702 start
-	mlog("XTRAP Start\n");
-
-	char szTemp[256] = {0,};
-	bool bPatchSkip = false;
-
-	bool bIsXtrapTest = CheckXTrapIsGetTestCode();
-	if (bIsXtrapTest)
-	{
-		// XTRAP 테스트용 파일경로로 실행된다. //
-		OnGetXTrapTestCodeArgv(szTemp, &bPatchSkip);
-	}
-	else
-	{
-		// XTRAP 리얼 서버용 파일경로로 실행된다. //
-		OnGetXTrapRealCodeArgv(szTemp, &bPatchSkip);
-	}
-
-	if (!bPatchSkip)
-	{
-		XTrap_L_Patch(szTemp, szModuleFileName, 60);
-	}
-
-	XTrap_C_Start(szTemp, NULL);
-	XTrap_C_KeepAlive();
-
-	mlog("XTRAP End\n");
-#endif																// update sgk 0702 end
 
 	ClearTrashFiles();
 
@@ -1656,18 +1324,6 @@ int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int 
 #endif
 
 
-/*#ifndef LOCALE_NHNUSA
-	if (ZCheckHackProcess() == true)
-	{
-//		MessageBox(NULL,
-//			ZMsg(MSG_HACKING_DETECTED), ZMsg( MSG_WARNING), MB_OK);
-		mlog(ZMsg(MSG_HACKING_DETECTED));
-		mlog("\n");
-		mlog("I'm hacker.\n" );
-		return 0;
-	}
-#endif*/
-
 	if(!InitializeNotify(ZApplication::GetFileSystem())) {
 		MLog("Check notify.xml\n");
 		return 0;
@@ -1677,10 +1333,7 @@ int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int 
 		mlog( "InitializeNotify ok.\n" );
 	}
 
-	// font 있는가 검사..
-
 	if(CheckFont()==false) {
-		MLog("폰트가 없는 유저가 폰트 선택을 취소\n");
 		return 0;
 	}
 
@@ -1696,98 +1349,10 @@ int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int 
 
 	SetModeParams();
 
-//	while(ShowCursor(FALSE)>0);
-
 	const int nRMainReturn = RMain(APPLICATION_NAME,this_inst,prev_inst,cmdline,cmdshow,&g_ModeParams,WndProc,IDI_ICON1);
 	if( 0 != nRMainReturn )
 		return nRMainReturn;
 
-
-#ifdef _GAMEGUARD
-	mlog("start gameguard\n");
-
-	ZGMAEGUARD_MODE mode = ZGGM_END;
-	char szArg[ 64] = "";
-	ZBaseAuthInfo* pAuth = ZGetLocale()->GetAuthInfo();
-	
-
-#ifdef LOCALE_NHNUSA
-	if ( ((ZNHN_USAAuthInfo*)pAuth)->IsReal())
-	{
-		mode = ZGGM_REAL;
-		strcpy( szArg, "GunzUS");
-	}
-	else if ( ((ZNHN_USAAuthInfo*)pAuth)->IsAlpha())
-	{
-		mode = ZGGM_ALPHA;
-		strcpy( szArg, "GunzUSTest");
-	}
-	else
-	{
-		mlog( "error in gameguard mode...\n" );
-		zexit( -1);
-		return 0;
-	}
-
-#elif LOCALE_JAPAN
-	if ( ((ZGameOnJPAuthInfo*)pAuth)->IsReal())
-	{
-		mode = ZGGM_REAL;
-		strcpy( szArg, "GUNZWEI");
-	}
-	else if ( ((ZGameOnJPAuthInfo*)pAuth)->IsAlpha())
-	{
-		mode = ZGGM_ALPHA;
-		strcpy( szArg, "GUNZWEITest");
-	}
-	else
-	{
-		mlog( "error in gameguard mode...\n" );
-		zexit( -1);
-		return 0;
-	}
-
-	if( !((ZGameOnJPAuthInfo*)pAuth)->SendMsgToLauncher(GET_MSG_HWND_TERMINATE_PUBGAME) )
-	{
-		mlog("Can't find GameOn Agent");
-	}
-#endif	// LOCALE_JAPAN
-	mode = ZGGM_REAL;
-	strcpy( szArg, "GunzUS");
-
-	if( !GetZGameguard().Init( mode, szArg) )
-	{
-		mlog( "error init gameguard...\n" );
-		zexit( -1 );
-		return 0;
-	}
-
-
-	GetZGameguard().SetMainWnd( g_hWnd );
-
-	if( !CheckGameGuardHackToolUser() )
-		return 0;
-
-#endif	// _GAMEGUARD
-
-
-#ifdef _GAMEGUARD
-	#ifdef _PUBLISH
-		// 중복 실행 금지
-		Mutex = CreateMutex(NULL, TRUE, "Gunz");
-		if (GetLastError() == ERROR_ALREADY_EXISTS)
-		{
-			zexit(-1);
-			return 0;
-		}
-	#endif
-#endif
-
-
-
-#ifdef LOCALE_NHNUSA
-	GetNHNUSAReport().ReportInitGameGuard();
-#endif
 
 	if( 0 != RInitD3D(&g_ModeParams) )
 	{
@@ -1802,17 +1367,8 @@ int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int 
 	//종료전에 건즈를 최소화/비활성화 시켜놓는다. xfire의 즉각적인 문제 해결을 기대하기 어려우므로 이렇게 처리
 	ShowWindow(g_hWnd, SW_MINIMIZE);
 
-#ifdef _GAMEGUARD
-	GetZGameguard().Release();
-#endif
-
 #ifdef _MTRACEMEMORY
 	MShutdownTraceMemory();
-#endif
-
-#ifdef _HSHIELD
-	_AhnHS_StopService();
-	_AhnHS_Uninitialize();		
 #endif
 
 
@@ -1850,76 +1406,3 @@ int PASCAL WinMain(HINSTANCE this_inst, HINSTANCE prev_inst, LPSTR cmdline, int 
 
 	return 0;
 }
-
-#ifdef _HSHIELD
-int __stdcall AhnHS_Callback(long lCode, long lParamSize, void* pParam)
-{
-//	TCHAR szTitle[256];
-
-	switch(lCode)
-	{
-		//Engine Callback
-	case AHNHS_ENGINE_DETECT_GAME_HACK:
-		{
-			TCHAR szMsg[255];
-			wsprintf(szMsg, _T("다음 위치에서 해킹툴이 발견되어 프로그램을 종료시켰습니다.\n%s"), (char*)pParam);
-//			MessageBox(NULL, szMsg, szTitle, MB_OK);
-			mlog(szMsg);
-			PostThreadMessage(g_dwMainThreadID, WM_QUIT, 0, 0);
-			break;
-		}
-
-		//일부 API가 이미 후킹되어 있는 상태
-		//그러나 실제로는 이를 차단하고 있기 때문에 다른 후킹시도 프로그램은 동작하지 않습니다.
-		//이 Callback은 단지 경고 내지는 정보제공 차원에서 제공되므로 게임을 종료할 필요가 없습니다.
-	case AHNHS_ACTAPC_DETECT_ALREADYHOOKED:
-		{
-			PACTAPCPARAM_DETECT_HOOKFUNCTION pHookFunction = (PACTAPCPARAM_DETECT_HOOKFUNCTION)pParam;
-			TCHAR szMsg[255];
-			wsprintf(szMsg, _T("[HACKSHIELD] Already Hooked\n- szFunctionName : %s\n- szModuleName : %s\n"), 
-				pHookFunction->szFunctionName, pHookFunction->szModuleName);
-			OutputDebugString(szMsg);
-			break;
-		}
-
-		//Speed 관련
-	case AHNHS_ACTAPC_DETECT_SPEEDHACK:
-	case AHNHS_ACTAPC_DETECT_SPEEDHACK_APP:
-		{
-//			MessageBox(NULL, _T("현재 이 PC에서 SpeedHack으로 의심되는 동작이 감지되었습니다."), szTitle, MB_OK);
-			mlog("현재 이 PC에서 SpeedHack으로 의심되는 동작이 감지되었습니다.");
-			PostThreadMessage(g_dwMainThreadID, WM_QUIT, 0, 0);
-			break;
-		}
-
-		//디버깅 방지 
-	case AHNHS_ACTAPC_DETECT_KDTRACE:	
-	case AHNHS_ACTAPC_DETECT_KDTRACE_CHANGED:
-		{
-			TCHAR szMsg[255];
-			wsprintf(szMsg, _T("프로그램에 대하여 디버깅 시도가 발생하였습니다. (Code = %x)\n프로그램을 종료합니다."), lCode);
-//			MessageBox(NULL, szMsg, szTitle, MB_OK);
-			mlog(szMsg);
-			PostThreadMessage(g_dwMainThreadID, WM_QUIT, 0, 0);
-			break;
-		}
-
-		//그외 해킹 방지 기능 이상 
-	case AHNHS_ACTAPC_DETECT_AUTOMOUSE:
-	case AHNHS_ACTAPC_DETECT_DRIVERFAILED:
-	case AHNHS_ACTAPC_DETECT_HOOKFUNCTION:
-	case AHNHS_ACTAPC_DETECT_MESSAGEHOOK:
-	case AHNHS_ACTAPC_DETECT_MODULE_CHANGE:
-		{
-			TCHAR szMsg[255];
-			wsprintf(szMsg, _T("해킹 방어 기능에 이상이 발생하였습니다. (Code = %x)\n프로그램을 종료합니다."), lCode);
-//			MessageBox(NULL, szMsg, szTitle, MB_OK);
-			mlog(szMsg);
-			PostThreadMessage(g_dwMainThreadID, WM_QUIT, 0, 0);
-			break;
-		}
-	}
-
-	return 1;
-}
-#endif

@@ -3,12 +3,18 @@
 
 int MDuelTournamentFormula::Calc_WinnerTP(int nWinnerTP, int nLoserTP, bool isFinal)
 {
-	float fResult = 5.0f / (1 + pow(5.0f, float(nWinnerTP-nLoserTP) / 1000.0f));
-	
-	if( fResult < 1 ) fResult = 1;
+	// Use powf() for float precision
+	float fResult = 5.0f / (1.0f + powf(5.0f, float(nWinnerTP - nLoserTP) / 1000.0f));
 
-	if( isFinal )	return (int)(fResult * 2);	// °á½ÂÀüÀº µæÁ¡ÀÌ 2¹è
-	else			return (int)fResult;
+	// Ensure fResult is at least 1
+	if (fResult < 1.0f)
+		fResult = 1.0f;
+
+	// If final, return double the result
+	if (isFinal)
+		return static_cast<int>(fResult * 2.0f);
+	else
+		return static_cast<int>(fResult);
 }
 
 int MDuelTournamentFormula::Calc_LoserTP(int nWinnerGainTP, bool isFinal)

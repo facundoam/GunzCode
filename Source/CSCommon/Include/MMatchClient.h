@@ -22,58 +22,59 @@ using namespace std;
 class MMatchPeerInfo
 {
 public:
-	MUID	uidChar;
-	char	szIP[64];
-	DWORD	dwIP;
-	int		nPort;
-	MTD_CharInfo		CharInfo;
-	//버프정보임시주석 MTD_CharBuffInfo	CharBuffInfo;
-	MTD_ExtendInfo		ExtendInfo;
+	MUID    uidChar;
+	char    szIP[64];
+	DWORD   dwIP;
+	int     nPort;
+	MTD_CharInfo   CharInfo;
+	//버프정보임시주석 MTD_CharBuffInfo    CharBuffInfo;
+	MTD_ExtendInfo ExtendInfo;
 
 protected:
-	bool				m_bUDPTestResult;
-	bool				m_bUDPTestProcess;
-	int					m_nUDPTestCount;
+	bool    m_bUDPTestResult;
+	bool    m_bUDPTestProcess;
+	int     m_nUDPTestCount;
 
-	bool				m_bOpened;
-	int					m_nPing;
-	int					m_nPingTryCount;
-	unsigned int		m_nLastPingTime;
-	unsigned int		m_nLastPongTime;
-	MCommandSNChecker	m_CommandSNChecker;
+	bool    m_bOpened;
+	int     m_nPing;
+	int     m_nPingTryCount;
+	unsigned int m_nLastPingTime;
+	unsigned int m_nLastPongTime;
+	MCommandSNChecker m_CommandSNChecker;
+
 public:
-	MMatchPeerInfo() {
+	// Constructor that uses an initializer list
+	MMatchPeerInfo()
+		: uidChar(0, 0),
+		dwIP(0),
+		nPort(0),
+		m_bUDPTestResult(false),
+		m_bUDPTestProcess(false),
+		m_nUDPTestCount(0),
+		m_bOpened(false),
+		m_nPing(0),
+		m_nPingTryCount(0),
+		m_nLastPingTime(0),
+		m_nLastPongTime(0)
+	{
 		memset(&CharInfo, 0, sizeof(MTD_CharInfo));
 		//버프정보임시주석 memset(&CharBuffInfo, 0, sizeof(MTD_CharBuffInfo));
-
-		uidChar = MUID(0,0);
-		szIP[0] = NULL;
-		dwIP	= 0;
-		nPort	= 0;
-
-		m_bUDPTestResult = false;
-		m_bUDPTestProcess = false;
-		m_nUDPTestCount = 0;
-
-		m_bOpened = false;
-		m_nPing = 0;
-		m_nLastPingTime = 0;
-		m_nLastPongTime = 0;
-		m_nPingTryCount = 0;
+		memset(szIP, 0, sizeof(szIP));  // Initialize the szIP array
 	}
 
-	virtual ~MMatchPeerInfo()			{}
+	virtual ~MMatchPeerInfo() {}
 
-	bool GetUDPTestResult()				{ return m_bUDPTestResult; }
-	void SetUDPTestResult(bool bResult)	{ m_bUDPTestResult = bResult; }
-	void StartUDPTest()					{ m_bUDPTestProcess = true; m_nUDPTestCount = 10; }
-	void StopUDPTest()					{ m_bUDPTestProcess = false; m_nUDPTestCount = 0; }
-	bool GetProcess()					{ return m_bUDPTestProcess; }
-	int GetTestCount()					{ return m_nUDPTestCount; }
-	void UseTestCount()					{ m_nUDPTestCount--; }
+	// Accessor and mutator methods
+	bool GetUDPTestResult() const { return m_bUDPTestResult; }
+	void SetUDPTestResult(bool bResult) { m_bUDPTestResult = bResult; }
+	void StartUDPTest() { m_bUDPTestProcess = true; m_nUDPTestCount = 10; }
+	void StopUDPTest() { m_bUDPTestProcess = false; m_nUDPTestCount = 0; }
+	bool GetProcess() const { return m_bUDPTestProcess; }
+	int GetTestCount() const { return m_nUDPTestCount; }
+	void UseTestCount() { m_nUDPTestCount--; }
 
-	bool IsOpened()						{ return m_bOpened; }
-	void SetOpened(bool bVal)			{ m_bOpened = bVal; }
+	bool IsOpened() const { return m_bOpened; }
+	void SetOpened(bool bVal) { m_bOpened = bVal; }
 	int GetPing(unsigned int nCurrTime);
 	void UpdatePing(unsigned int nTime, int nPing);
 	void SetLastPingTime(unsigned int nTime);

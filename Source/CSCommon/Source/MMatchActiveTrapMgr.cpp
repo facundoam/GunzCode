@@ -4,7 +4,7 @@
 
 
 MMatchActiveTrap::MMatchActiveTrap()
-: m_vPosActivated(0,0,0)
+	: m_vPosActivated(0, 0, 0)
 {
 	m_uidOwner.SetZero();
 	m_nTrapItemId = 0;
@@ -20,9 +20,9 @@ void MMatchActiveTrap::AddForcedEnteredPlayer(const MUID& uid)
 	//_ASSERT(!IsActivated());
 
 	int n = (int)m_vecUidForcedEntered.size();
-	for (int i=0; i<n; ++i)
+	for (int i = 0; i < n; ++i)
 		if (m_vecUidForcedEntered[i] == uid) return;
-	
+
 	m_vecUidForcedEntered.push_back(uid);
 }
 
@@ -37,7 +37,7 @@ MMatchActiveTrapMgr::~MMatchActiveTrapMgr()
 	Destroy();
 }
 
-void MMatchActiveTrapMgr::Create( MMatchStage* pStage )
+void MMatchActiveTrapMgr::Create(MMatchStage* pStage)
 {
 	m_pStage = pStage;
 }
@@ -51,12 +51,12 @@ void MMatchActiveTrapMgr::Destroy()
 void MMatchActiveTrapMgr::Clear()
 
 {
-	for (ItorTrap it=m_listTrap.begin(); it!=m_listTrap.end(); ++it)
-		delete *it;
+	for (ItorTrap it = m_listTrap.begin(); it != m_listTrap.end(); ++it)
+		delete* it;
 	m_listTrap.clear();
 }
 
-void MMatchActiveTrapMgr::AddThrowedTrap( const MUID& uidOwner, int nItemId )
+void MMatchActiveTrapMgr::AddThrowedTrap(const MUID& uidOwner, int nItemId)
 {
 	if (!m_pStage) return;
 	if (!m_pStage->GetObj(uidOwner)) return;
@@ -65,7 +65,7 @@ void MMatchActiveTrapMgr::AddThrowedTrap( const MUID& uidOwner, int nItemId )
 	if (!pItemDesc) return;
 
 	MMatchActiveTrap* pTrap = new MMatchActiveTrap;
-	
+
 	pTrap->m_nTimeThrowed = MGetMatchServer()->GetGlobalClockCount();
 	pTrap->m_uidOwner = uidOwner;
 	pTrap->m_nTrapItemId = nItemId;
@@ -77,12 +77,12 @@ void MMatchActiveTrapMgr::AddThrowedTrap( const MUID& uidOwner, int nItemId )
 	OutputDebugString("AddThrowedTrap\n");
 }
 
-void MMatchActiveTrapMgr::OnActivated( const MUID& uidOwner, int nItemId, const MVector3& vPos )
+void MMatchActiveTrapMgr::OnActivated(const MUID& uidOwner, int nItemId, const MVector3& vPos)
 {
 	if (!m_pStage) return;
 
 	MMatchActiveTrap* pTrap;
-	for (ItorTrap it=m_listTrap.begin(); it!=m_listTrap.end(); ++it)
+	for (ItorTrap it = m_listTrap.begin(); it != m_listTrap.end(); ++it)
 	{
 		pTrap = *it;
 		if (pTrap->m_uidOwner == uidOwner &&
@@ -101,34 +101,40 @@ void MMatchActiveTrapMgr::OnActivated( const MUID& uidOwner, int nItemId, const 
 	}
 }
 
-void MMatchActiveTrapMgr::Update( unsigned long nClock )
+void MMatchActiveTrapMgr::Update(unsigned long nClock)
 {
 	MMatchActiveTrap* pTrap;
-	for (ItorTrap it=m_listTrap.begin(); it!=m_listTrap.end(); )
+	for (ItorTrap it = m_listTrap.begin(); it != m_listTrap.end(); )
 	{
 		pTrap = *it;
 
+		// Check if the trap is activated
 		if (pTrap->IsActivated())
 		{
-			// 발동 후 수명이 다한 트랩을 제거
-			if (nClock - pTrap->m_nTimeActivated > pTrap->m_nLifeTime)
+			// Ensure no underflow when comparing unsigned integers
+			if (nClock >= pTrap->m_nTimeActivated && (nClock - pTrap->m_nTimeActivated > pTrap->m_nLifeTime))
 			{
+				// Erase the trap and delete the memory
 				it = m_listTrap.erase(it);
+				delete pTrap;  // Free the memory
 				OutputDebugString("Trap deactivated\n");
 				continue;
 			}
 		}
 		else
 		{
-			// 던져졌으나 유효시간 내에 발동 커맨드가 오지 않은 것도 제거
-			if (nClock - pTrap->m_nTimeThrowed > MAX_TRAP_THROWING_LIFE * 1000)
+			// Ensure no underflow when comparing unsigned integers
+			if (nClock >= pTrap->m_nTimeThrowed && (nClock - pTrap->m_nTimeThrowed > MAX_TRAP_THROWING_LIFE * 1000))
 			{
+				// Erase the trap and delete the memory
 				it = m_listTrap.erase(it);
+				delete pTrap;  // Free the memory
 				OutputDebugString("Trap Removed without activation\n");
 				continue;
 			}
 		}
 
+		// Increment the iterator only if no trap is erased
 		++it;
 	}
 }
@@ -142,7 +148,7 @@ void MMatchActiveTrapMgr::RouteAllTraps(MMatchObject* pObj)
 	MMatchActiveTrap* pTrap;
 
 	// 아직 발동되지 않은 트랩(던져서 날아가고 있는 중)은 이후 발동할 때 따로 알려줄 수 있도록 표시해둔다
-	for (ItorTrap it=m_listTrap.begin(); it!=m_listTrap.end(); ++it)
+	for (ItorTrap it = m_listTrap.begin(); it != m_listTrap.end(); ++it)
 	{
 		pTrap = *it;
 		if (!pTrap->IsActivated())
@@ -155,7 +161,7 @@ void MMatchActiveTrapMgr::RouteAllTraps(MMatchObject* pObj)
 
 	// 발동되어 있는 트랩은 목록을 보내준다
 	int num = 0;
-	for (ItorTrap it=m_listTrap.begin(); it!=m_listTrap.end(); ++it)
+	for (ItorTrap it = m_listTrap.begin(); it != m_listTrap.end(); ++it)
 		if ((*it)->IsActivated())
 			++num;
 
@@ -165,7 +171,7 @@ void MMatchActiveTrapMgr::RouteAllTraps(MMatchObject* pObj)
 
 	MTD_ActivatedTrap* pNode;
 	int nIndex = 0;
-	for (ItorTrap it=m_listTrap.begin(); it!=m_listTrap.end(); ++it)
+	for (ItorTrap it = m_listTrap.begin(); it != m_listTrap.end(); ++it)
 	{
 		pTrap = *it;
 		if (pTrap->IsActivated())
@@ -182,7 +188,7 @@ void MMatchActiveTrapMgr::RouteAllTraps(MMatchObject* pObj)
 		}
 	}
 
-	MCommand* pCmd = MMatchServer::GetInstance()->CreateCommand(MC_MATCH_NOTIFY_ACTIATED_TRAPITEM_LIST, MUID(0,0));
+	MCommand* pCmd = MMatchServer::GetInstance()->CreateCommand(MC_MATCH_NOTIFY_ACTIATED_TRAPITEM_LIST, MUID(0, 0));
 	pCmd->AddParameter(new MCommandParameterBlob(pTrapArray, MGetBlobArraySize(pTrapArray)));
 	MEraseBlobArray(pTrapArray);
 
@@ -195,22 +201,22 @@ void MMatchActiveTrapMgr::RouteTrapActivationForForcedEnterd(MMatchActiveTrap* p
 
 	if (!pTrap || !pTrap->IsActivated()) { return; }
 	if (!m_pStage) return;
-	
+
 	int numTarget = (int)pTrap->m_vecUidForcedEntered.size();
 	if (numTarget <= 0) return;
 
 	void* pTrapArray = MMakeBlobArray(sizeof(MTD_ActivatedTrap), 1);
-	
+
 	MTD_ActivatedTrap* pNode = (MTD_ActivatedTrap*)MGetBlobArrayElement(pTrapArray, 0);
 	Make_MTDActivatedTrap(pNode, pTrap);
 
-	MCommand* pCommand = MMatchServer::GetInstance()->CreateCommand(MC_MATCH_NOTIFY_ACTIATED_TRAPITEM_LIST, MUID(0,0));
+	MCommand* pCommand = MMatchServer::GetInstance()->CreateCommand(MC_MATCH_NOTIFY_ACTIATED_TRAPITEM_LIST, MUID(0, 0));
 	pCommand->AddParameter(new MCommandParameterBlob(pTrapArray, MGetBlobArraySize(pTrapArray)));
 
 	MMatchObject* pObj;
-	for (int i=0; i<numTarget; ++i)
+	for (int i = 0; i < numTarget; ++i)
 	{
-		pObj = m_pStage->GetObj( pTrap->m_vecUidForcedEntered[i]);
+		pObj = m_pStage->GetObj(pTrap->m_vecUidForcedEntered[i]);
 		if (!pObj) continue;
 
 		MCommand* pSendCmd = pCommand->Clone();

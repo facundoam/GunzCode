@@ -58,9 +58,6 @@
     <Filter Include="ZWeapon">
       <UniqueIdentifier>{e9e5e1d6-1f94-48f7-8b38-d5b5ec8fa3f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Test">
-      <UniqueIdentifier>{b86ca835-d2a7-4545-a726-bd258952f12a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="etc">
       <UniqueIdentifier>{778c8d22-5b74-41a7-94d8-bd01b6a4528f}</UniqueIdentifier>
     </Filter>
@@ -105,18 +102,6 @@
     </Filter>
     <Filter Include="StringRes">
       <UniqueIdentifier>{b8332fd3-dde7-4aa3-af22-ee081fbdea66}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Security">
-      <UniqueIdentifier>{fcb5828a-3839-49c0-92a4-c008efc0f9e0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Security\GameGuard">
-      <UniqueIdentifier>{1d63d1e7-2ad4-4bc3-aa7e-d686ad6c5353}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Security\HShield">
-      <UniqueIdentifier>{b592711a-a52d-4d6d-a261-fafcd8693552}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Security\XTrap">
-      <UniqueIdentifier>{d5894dc5-9c4f-43e5-8b60-62da3cbf2b10}</UniqueIdentifier>
     </Filter>
     <Filter Include="Custom">
       <UniqueIdentifier>{a468ff88-e17e-4d83-950b-68ed97895412}</UniqueIdentifier>
@@ -726,12 +711,6 @@
     <ClInclude Include="ZWeaponMgr.h">
       <Filter>ZWeapon</Filter>
     </ClInclude>
-    <ClInclude Include="ZBirdDummyAI.h">
-      <Filter>Test</Filter>
-    </ClInclude>
-    <ClInclude Include="ZBirdDummyClient.h">
-      <Filter>Test</Filter>
-    </ClInclude>
     <ClInclude Include="MSysInfo.h">
       <Filter>etc</Filter>
     </ClInclude>
@@ -781,9 +760,6 @@
       <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="ZPostLocal.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="ZSecurity.h">
       <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="NATUPnP.h">
@@ -848,30 +824,6 @@
     </ClInclude>
     <ClInclude Include="ZTips.h">
       <Filter>StringRes</Filter>
-    </ClInclude>
-    <ClInclude Include="CheckReturnCallStack.h">
-      <Filter>Security</Filter>
-    </ClInclude>
-    <ClInclude Include="PrivateKey.h">
-      <Filter>Security</Filter>
-    </ClInclude>
-    <ClInclude Include="SecurityTest.h">
-      <Filter>Security</Filter>
-    </ClInclude>
-    <ClInclude Include="GameGuard\NPGameLib.h">
-      <Filter>Security\GameGuard</Filter>
-    </ClInclude>
-    <ClInclude Include="ZGameGuard.h">
-      <Filter>Security\GameGuard</Filter>
-    </ClInclude>
-    <ClInclude Include="HShield\HShield.h">
-      <Filter>Security\HShield</Filter>
-    </ClInclude>
-    <ClInclude Include="XTrap\XTrap4Launcher.h">
-      <Filter>Security\XTrap</Filter>
-    </ClInclude>
-    <ClInclude Include="XTrap\Xtrap_C_Interface.h">
-      <Filter>Security\XTrap</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
@@ -1434,15 +1386,6 @@
     <ClCompile Include="ZWeaponMgr.cpp">
       <Filter>ZWeapon</Filter>
     </ClCompile>
-    <ClCompile Include="ZBirdDummyAI.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="ZBirdDummyClient.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="ZBirdTest.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
     <ClCompile Include="MSysInfo.cpp">
       <Filter>etc</Filter>
     </ClCompile>
@@ -1500,9 +1443,6 @@
     <ClCompile Include="ZPostLocal.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="ZSecurity.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="upnp.cpp">
       <Filter>Network\UPNP</Filter>
     </ClCompile>
@@ -1545,12 +1485,6 @@
     <ClCompile Include="ZTips.cpp">
       <Filter>StringRes</Filter>
     </ClCompile>
-    <ClCompile Include="SecurityTest.cpp">
-      <Filter>Security</Filter>
-    </ClCompile>
-    <ClCompile Include="ZGameGuard.cpp">
-      <Filter>Security\GameGuard</Filter>
-    </ClCompile>
     <ClCompile Include="antishotbot.cpp">
       <Filter>Custom</Filter>
     </ClCompile>
@@ -1572,6 +1506,7 @@
     <None Include="runtime\shader\skin1.vsh">
       <Filter>etc\Shader</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico">
@@ -1622,24 +1557,6 @@
     </Library>
     <Library Include="fmodvc.lib">
       <Filter>extern\lib</Filter>
-    </Library>
-    <Library Include="HShield\HShield.lib">
-      <Filter>Security\HShield</Filter>
-    </Library>
-    <Library Include="XTrap\XTrap4Client_ClientPart_mt.lib">
-      <Filter>Security\XTrap</Filter>
-    </Library>
-    <Library Include="XTrap\XTrap4Client_mt.lib">
-      <Filter>Security\XTrap</Filter>
-    </Library>
-    <Library Include="XTrap\XTrap4Client_ServerPart_mt.lib">
-      <Filter>Security\XTrap</Filter>
-    </Library>
-    <Library Include="XTrap\XTrap4Launcher_mt.lib">
-      <Filter>Security\XTrap</Filter>
-    </Library>
-    <Library Include="XTrap\XTrap_Unipher_mt.lib">
-      <Filter>Security\XTrap</Filter>
     </Library>
   </ItemGroup>
 </Project>

@@ -173,12 +173,15 @@ struct ZCharacterProperty_Old
 								szName[0] = 0;
 								szClanName[0] = 0;
 							}
-	void SetName(const char* name) { strcpy(szName, name); }
-	void SetClanName(const char* name) { strcpy(szClanName, name); }
+	void SetName(const char* name) {
+		strcpy(szName, name);
+	}
+
+	void SetClanName(const char* name) {
+		strcpy(szClanName, name);
+	}
 };
 
-/// 메모리핵 방어용으로 새로 만든 캐릭터 속성 - 기존 구조체는 리플레이 호환때문에 남겨두었음
-// 기존 속성 구조체에서 안쓰는 멤버변수는 빼버렸다
 struct ZCharacterProperty_CharClanName
 {
 	char		szName[MATCHOBJECT_NAME_LENGTH];
@@ -650,8 +653,8 @@ public:
 
 	void ChangeWeapon(MMatchCharItemParts nParts);
 
-	int GetLastShotItemID()	{ return m_nLastShotItemID; }
-	float GetLastShotTime()						{ return m_fLastShotTime; }
+	int GetLastShotItemID() const { return m_nLastShotItemID; }
+	float GetLastShotTime() const { return m_fLastShotTime; }
 	bool CheckValidShotTime(int nItemID, float fTime, ZItem* pItem);
 	void UpdateValidShotTime(int nItemID, float fTime)	
 	{ 

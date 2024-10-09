@@ -37,7 +37,6 @@
 #include "MToolTip.h"
 #include "ZColorTable.h"
 #include "ZClan.h"
-#include "ZSecurity.h"
 #include "ZItemDesc.h"
 #include "ZCharacterSelectView.h"
 #include "ZChannelListItem.h"
@@ -46,13 +45,7 @@
 #include "ZMap.h"
 #include "UPnP.h"
 #include "MMD5.h"
-#include "ZPlayerManager.h"
-
-
-#ifdef _XTRAP											// Update sgk 0760 start
-#include "./XTrap/Xtrap_C_Interface.h"
-#pragma comment (lib, "XTrap/XTrap4Client_mt.lib")
-#endif													// Update sgk 0760 end
+#include "ZPlayerManager.h"												// Update sgk 0760 end
 
 
 #ifdef LOCALE_NHNUSA
@@ -60,9 +53,6 @@
 #include "ZNHN_USA_Report.h"
 #endif
 
-#ifdef _GAMEGUARD
-#include "ZGameGuard.h"
-#endif
 
 
 
@@ -123,10 +113,6 @@ bool ZPostCommand(MCommand* pCmd)
 		case MC_MATCH_CHATROOM_INVITE:
 		case MC_MATCH_CHATROOM_CHAT:
 		case MC_MATCH_CLAN_MSG:
-		case MC_HSHIELD_PONG:
-		case MC_RESPONSE_XTRAP_HASHVALUE:
-		case MC_RESPONSE_GAMEGUARD_AUTH:
-		case MC_RESPONSE_XTRAP_SEEDKEY:
 			break;
 		default:
 			delete pCmd;
@@ -263,11 +249,6 @@ ZGameClient::ZGameClient() : MMatchClient() , m_pUPnP(NULL)
 	memset(&m_dtCharInfo, 0, sizeof(m_dtCharInfo));
 	memset(&m_dtCharInfoPrev, 0, sizeof(m_dtCharInfoPrev));
 
-	// HShield Init
-// #ifdef _HSHIELD
-//	MPacketHShieldCrypter::Init();
-//#endif
-
 #ifdef _LOCATOR // -by 추교성. Locator에 접속해서 커맨드를 받으려면 m_This의 UID가 (0,0)이 아니어야 함.
 	m_This = MUID(0, 1);
 #endif
@@ -290,9 +271,6 @@ ZGameClient::~ZGameClient()
 
 void ZGameClient::PriorityBoost(bool bBoost)
 {
-#ifdef _GAMEGUARD
-	return;
-#endif
 
 	if (bBoost) {
 		SetPriorityClass(GetCurrentProcess(),ABOVE_NORMAL_PRIORITY_CLASS);
@@ -331,14 +309,6 @@ int ZGameClient::OnResponseMatchLogin(const MUID& uidServer, int nResult, const 
 
 	if ((nResult == 0) && (nRet == MOK)) {	// Login successful
 		mlog("Login Successful. \n");
-
-#ifdef _HSHIELD
-		int dwRet = _AhnHS_MakeGuidAckMsg(pbyGuidReqMsg,        // [in]
-										  ZGetMyInfo()->GetSystemInfo()->pbyGuidAckMsg // [out]
-										 );
-		if( dwRet != ERROR_SUCCESS )
-			mlog("Making Guid Ack Msg Failed. (Error code = %x)\n", dwRet);
-#endif
 
 		// 여기서 AccountCharList를 요청한다.
 		ZApplication::GetGameInterface()->ChangeToCharSelection();
@@ -769,7 +739,7 @@ void ZGameClient::OnStageJoin(const MUID& uidChar, const MUID& uidStage, unsigne
 		else
 		{
 			sprintf( kill, "? %s", ZMsg( MSG_CHARINFO_KILL));
-			sprintf( death, "? %s", pInfo->GetDeath(), ZMsg( MSG_CHARINFO_DEATH));
+			sprintf( death, "? %s", ZMsg( MSG_CHARINFO_DEATH));
 			sprintf( winning, "0.0%%");
 		}
 
@@ -1252,9 +1222,10 @@ void ZGameClient::OnStageRelayMapListUpdate(int nRelayMapType, int nRelayMapRepe
 	MListBox* pRelaMapListBox = (MListBox*)ZGetGameInterface()->GetIDLResource()->FindWidget("Stage_RelayMapListbox");
 	if(pRelaMapListBox == NULL) return;
 
-	RelayMap relayMapList[MAX_RELAYMAP_LIST_COUNT];
+	RelayMap relayMapList[MAX_RELAYMAP_LIST_COUNT]{};
 	for (int i = 0; i < MAX_RELAYMAP_LIST_COUNT; i++)
 		relayMapList[i].nMapID = -1;
+
 	// 기존 릴레이맵 리스트를 모두 지워준다.
 	pRelaMapListBox->RemoveAll();
 	int nRelayMapListCount = MGetBlobArrayCount(pStageRelayMapListBlob);
@@ -1407,9 +1378,6 @@ int ZGameClient::OnConnected(SOCKET sock, MUID* pTargetUID, MUID* pAllocUID, uns
 #endif
 
 
-#ifdef _GAMEGUARD
-			ZGameguard::m_IsResponseFirstGameguardAuth = false;
-#endif
 
 			mlog("Login Posted\n");
 		}
@@ -1514,15 +1482,13 @@ class MCharListItem : public MListItem {
 	char	m_szName[32];
 public:
 	MCharListItem(MUID uid, char* szName) { 
-		m_uid = uid; strcpy(m_szName, szName); 
+		m_uid = uid; 
+		strcpy(m_szName, szName); 
 	}
 	virtual ~MCharListItem()			{}
 	virtual const char* GetString(void)	{ return m_szName; }
-	MUID GetUID()						{ return m_uid; }
-	char* GetName()						{ return m_szName; }
-
-public:
-
+	MUID GetUID() const { return m_uid; }
+	const char* GetName() const { return m_szName; }
 };
 
 int ZGameClient::FindListItem(MListBox* pListBox, const MUID& uid)

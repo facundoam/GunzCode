@@ -59,7 +59,7 @@ public:
 
 	void ClearCheckSum(void);
 	void InitCheckSum(void);
-	void AddCheckSum(int nCheckSum, char* szName, MCheckSumType t);
+	void AddCheckSum(int nCheckSum, const char* szName, MCheckSumType t);
 	int GetCheckSum(void);
 	void LogSubCheckSum(const char* szCheckSumName, MCheckSum* pCheckSum, int nCheckSum);
 	void LogSubCheckSum(const char* szCheckSumName);

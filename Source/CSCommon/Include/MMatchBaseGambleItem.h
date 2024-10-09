@@ -1,32 +1,32 @@
 #ifndef _MMATCHBASEGAMBLEITEM_H
 #define _MMATCHBASEGAMBLEITEM_H
 
-// 클라이언트와 서버가 겜블아이템에 대해서 공통으로 사용하는 데이터.
 class MMatchBaseGambleItem
 {
-protected :
-	MUID	m_uidItem;
-	DWORD	m_dwGambleItemID;
-	int		m_nItemCount;
-	
-protected :
-	MMatchBaseGambleItem() {}
+protected:
+    MUID    m_uidItem;
+    DWORD   m_dwGambleItemID;
+    int     m_nItemCount;
 
-public :
-	MMatchBaseGambleItem( const MUID& uidItem, const DWORD dwGambleItemID, const int nItemCount = 1) 
-	{
-		m_uidItem		 = uidItem;
-		m_dwGambleItemID = dwGambleItemID;
-		m_nItemCount	 = nItemCount;
-	}
+protected:
+    // Default constructor
+    MMatchBaseGambleItem()
+        : m_uidItem(), m_dwGambleItemID(0), m_nItemCount(0) {}
 
-	virtual ~MMatchBaseGambleItem() {}
+public:
+    // Parameterized constructor using initializer list
+    MMatchBaseGambleItem(const MUID& uidItem, DWORD dwGambleItemID, int nItemCount = 1)
+        : m_uidItem(uidItem), m_dwGambleItemID(dwGambleItemID), m_nItemCount(nItemCount) {}
 
-	const MUID& GetUID() const			{ return m_uidItem; }
-	const DWORD GetGambleItemID() const { return m_dwGambleItemID; }
-	const int	GetItemCount() const	{ return m_nItemCount; }
+    virtual ~MMatchBaseGambleItem() {}
 
-	void SetItemCount(int nVal)	{ m_nItemCount = nVal; }
+    // Getter methods
+    const MUID& GetUID() const { return m_uidItem; }
+    DWORD GetGambleItemID() const { return m_dwGambleItemID; }
+    int GetItemCount() const { return m_nItemCount; }
+
+    // Setter for item count
+    void SetItemCount(int nVal) { m_nItemCount = nVal; }
 };
 
 #endif

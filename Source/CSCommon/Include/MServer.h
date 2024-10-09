@@ -17,19 +17,19 @@ protected:
 	list<MCommObject*>			m_AcceptWaitQueue;
 	CRITICAL_SECTION			m_csAcceptWaitQueue;
 
-	void LockAcceptWaitQueue()		{ EnterCriticalSection(&m_csAcceptWaitQueue); }
-	void UnlockAcceptWaitQueue()		{ LeaveCriticalSection(&m_csAcceptWaitQueue); }
+	void LockAcceptWaitQueue() { EnterCriticalSection(&m_csAcceptWaitQueue); }
+	void UnlockAcceptWaitQueue() { LeaveCriticalSection(&m_csAcceptWaitQueue); }
 
 	MUIDRefCache				m_CommRefCache;			///< 현재 연결이 설정된 다른 커뮤니케이터 캐쉬
 	CRITICAL_SECTION			m_csCommList;
 
-	void LockCommList()			{ EnterCriticalSection(&m_csCommList); }
-	void UnlockCommList()		{ LeaveCriticalSection(&m_csCommList); }
+	void LockCommList() { EnterCriticalSection(&m_csCommList); }
+	void UnlockCommList() { LeaveCriticalSection(&m_csCommList); }
 
 	MCommandList				m_SafeCmdQueue;
 	CRITICAL_SECTION			m_csSafeCmdQueue;
-	void LockSafeCmdQueue()		{ EnterCriticalSection(&m_csSafeCmdQueue); }
-	void UnlockSafeCmdQueue()	{ LeaveCriticalSection(&m_csSafeCmdQueue); }
+	void LockSafeCmdQueue() { EnterCriticalSection(&m_csSafeCmdQueue); }
+	void UnlockSafeCmdQueue() { LeaveCriticalSection(&m_csSafeCmdQueue); }
 
 	/// 새로운 UID 얻어내기
 	// virtual MUID UseUID(void) = 0;
@@ -66,13 +66,15 @@ protected:
 
 public:	// For Debugging
 	char m_szName[128];
-	void SetName(char* pszName) { strcpy(m_szName, pszName); }
-	void DebugLog(char* pszLog) {
-		#ifdef _DEBUG
+	void SetName(const char* pszName) {
+		strncpy_s(m_szName, sizeof(m_szName), pszName, _TRUNCATE);
+	}
+	void DebugLog(char* pszLog) const {
+#ifdef _DEBUG
 		char szLog[128];
 		wsprintf(szLog, "[%s] %s \n", m_szName, pszLog);
 		OutputDebugString(szLog);
-		#endif
+#endif
 	}
 
 public:
@@ -80,7 +82,7 @@ public:
 	~MServer(void);
 
 	/// 초기화
-	bool Create(int nPort, const bool bReuse = false );
+	bool Create(int nPort, const bool bReuse = false);
 	/// 해제
 	void Destroy(void);
 	int GetCommObjCount();
@@ -95,13 +97,13 @@ public:
 	/// 로그인되었을때
 	virtual void OnLocalLogin(MUID CommUID, MUID PlayerUID);
 	/// 연결 해제
-	virtual void Disconnect( const MUID& uid );	
+	virtual void Disconnect(const MUID& uid);
 	virtual int OnDisconnect(const MUID& uid);	// Thread not safe
 
-	virtual void Log(unsigned int nLogLevel, const char* szLog){}
+	virtual void Log(unsigned int nLogLevel, const char* szLog) {}
 
-	void SetFloodCheck(bool bVal)	{ m_bFloodCheck = bVal; }			///< (크게 문제가 되진 않겠지만) 생성자에서만 호출해주도록 합시다.
-	bool IsFloodCheck()				{ return m_bFloodCheck; }
+	void SetFloodCheck(bool bVal) { m_bFloodCheck = bVal; }			///< (크게 문제가 되진 않겠지만) 생성자에서만 호출해주도록 합시다.
+	bool IsFloodCheck() { return m_bFloodCheck; }
 };
 
 #endif

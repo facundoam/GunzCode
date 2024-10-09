@@ -681,42 +681,72 @@ bool MZFile::Seek(long off,int mode)
 
 	return false;
 }
-bool MZFile::Read( void* pBuffer, int nMaxSize)
+bool MZFile::Read(void* pBuffer, int nMaxSize)
 {
-	if ( m_IsBufferd) 
+	// Ensure pBuffer is not null
+	if (pBuffer == nullptr || nMaxSize <= 0)
 	{
-		if ( nMaxSize > ( GetLength() - m_nPos))
-			return false;
-		
-		if ( (nMaxSize == GetLength()) && (m_nPos == 0))
+		mlog("Invalid buffer or size\n");
+		return false;
+	}
+
+	if (m_IsBufferd)
+	{
+		if (nMaxSize > (GetLength() - m_nPos))
+			return false;  // Request exceeds available data
+
+		// Fast path if the whole file is being read and starting at position 0
+		if (nMaxSize == GetLength() && m_nPos == 0)
 		{
-			if ( !m_Zip.ReadFile( m_FileName, pBuffer, m_nFileSize))
+			if (!m_Zip.ReadFile(m_FileName, pBuffer, m_nFileSize))
 			{
-				mlog( "%s file open failed\n", m_FileName);
+				mlog("%s file open failed\n", m_FileName);
 				return false;
 			}
 		}
 		else
 		{
-			if ( m_pData == NULL)
+			// Lazy loading data if it's not already in memory
+			if (m_pData == nullptr)
 			{
-				m_pData = new char[ m_nFileSize + 1];
-				m_pData[ m_nFileSize] = 0;
-				if ( !m_Zip.ReadFile( m_nIndexInZip, m_pData, m_nFileSize))
+				try
 				{
+					m_pData = new char[m_nFileSize + 1];  // Allocate memory for file
+				}
+				catch (std::bad_alloc&)
+				{
+					mlog("Memory allocation failed for file data\n");
+					return false;
+				}
+
+				m_pData[m_nFileSize] = 0;  // Null-terminate for safety
+
+				if (!m_Zip.ReadFile(m_nIndexInZip, m_pData, m_nFileSize))
+				{
+					mlog("%s failed to read file from ZIP\n", m_FileName);
+					delete[] m_pData;  // Free memory in case of failure
+					m_pData = nullptr;
 					return false;
 				}
 			}
-			memcpy( pBuffer, (m_pData + m_nPos), nMaxSize);
+
+			// Copy the requested data from the internal buffer
+			memcpy(pBuffer, (m_pData + m_nPos), nMaxSize);
 		}
+
 		m_nPos += nMaxSize;
 	}
 	else
 	{
-		size_t numread = fread( pBuffer, 1, nMaxSize, m_fp);
-		if ( numread != nMaxSize)
+		// Reading directly from file
+		size_t numread = fread(pBuffer, 1, nMaxSize, m_fp);
+		if (numread != static_cast<size_t>(nMaxSize))  // Ensure entire block is read
+		{
+			mlog("File read failed: read size mismatch\n");
 			return false;
+		}
 	}
+
 	return true;
 }
 bool MZFileCheckList::Open(const char *szFileName, MZFileSystem *pfs)

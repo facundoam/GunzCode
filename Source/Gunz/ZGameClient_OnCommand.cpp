@@ -41,7 +41,6 @@
 #include "MToolTip.h"
 #include "ZColorTable.h"
 #include "ZClan.h"
-#include "ZSecurity.h"
 #include "ZItemDesc.h"
 #include "ZCharacterSelectView.h"
 #include "ZChannelListItem.h"
@@ -214,38 +213,6 @@ bool ZGameClient::OnCommand(MCommand* pCommand)
 				pCommand->GetParameter(&nTimeStamp, 1, MPT_UINT);
 
 				ZApplication::GetGameInterface()->SetAgentPing(nIp, nTimeStamp);
-			}
-			break;
-		case MC_HSHIELD_PING:
-			{
-				unsigned int nTimeStamp;
-
-				if(pCommand->GetParameter(&nTimeStamp, 0, MPT_UINT) == false) break;
-				
-				MCommandParameter* pParam = pCommand->GetParameter(1);
-				if(pParam->GetType() != MPT_BLOB) 	break;
-				void* pBlob = pParam->GetPointer();
-				int nCount = MGetBlobArrayCount(pBlob);
-
-				unsigned char* pReqMsg = (unsigned char*)MGetBlobArrayElement(pBlob, 0);
-				
-				DWORD dwRet = _AhnHS_MakeAckMsg(pReqMsg, ZGetMyInfo()->GetSystemInfo()->pbyAckMsg);
-
-				if(dwRet != ERROR_SUCCESS)
-					mlog("Making Ack Msg Failed. (Error code = %x)\n", dwRet);
-
-				MCommand* pNew = new MCommand(m_CommandManager.GetCommandDescByID(MC_HSHIELD_PONG), pCommand->m_Sender, m_This);
-				pNew->AddParameter(new MCommandParameterUInt(nTimeStamp));
-				void* pBlob2 = MMakeBlobArray(sizeof(unsigned char), SIZEOF_ACKMSG);
-				unsigned char* pCmdBlock = (unsigned char*)MGetBlobArrayElement(pBlob2, 0);
-				CopyMemory(pCmdBlock, ZGetMyInfo()->GetSystemInfo()->pbyAckMsg, SIZEOF_ACKMSG);
-
-				pNew->AddParameter(new MCmdParamBlob(pBlob2, MGetBlobArraySize(pBlob2)));
-//				MEraseBlobArray(pBlob);
-				MEraseBlobArray(pBlob2);
-				Post(pNew);
-				
-				return true;
 			}
 			break;
 		case ZC_CON_CONNECT:

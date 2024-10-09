@@ -2,7 +2,7 @@
 #define _MMATCHTRANSDATATYPE_H
 
 #include "MMatchObject.h"
-#include "MMatchRule.h"		// MMATCH_GAMETYPE, MMATCH_ROUNDSTATE, MMATCH_ROUNDRESULT 참조 -> 정리요망
+#include "MMatchRule.h"		
 #include "MMatchStageSetting.h"
 #include "MMatchGameType.h"
 #include "MMatchGlobal.h"
@@ -10,7 +10,6 @@
 #pragma pack(push, old)
 #pragma pack(1)
 
-// 내 캐릭터 리스트 정보 - 캐릭터 선택시 사용
 struct MTD_AccountCharInfo
 {
 	char				szName[MATCHOBJECT_NAME_LENGTH];
@@ -20,10 +19,6 @@ struct MTD_AccountCharInfo
 
 struct MTD_CharInfo
 {
-	// ＃이 구조체의 내용을 변경하려면 기존 리플레이의 로딩을 위해서 수정 전의 구조체를 ZReplay.cpp에 보존하고
-	// ＃버전별 로딩 코드를 작성해줘야 합니다. 변수의 추가는 가급적 마지막에 덧붙이는 편이 그나마 수월합니다.
-
-	// 캐릭터 정보
 	char				szName[MATCHOBJECT_NAME_LENGTH];
 	char				szClanName[CLAN_NAME_LENGTH];
 	MMatchClanGrade		nClanGrade;
@@ -46,29 +41,17 @@ struct MTD_CharInfo
 	unsigned short		nER;
 	unsigned short		nWR;
 
-	// 아이템 정보
 	unsigned long int	nEquipedItemDesc[MMCIP_END];
 
-	// account 의 정보
 	MMatchUserGradeID	nUGradeID;
 
-	// ClanCLID
 	unsigned int		nClanCLID;
 
-	// 지난주 듀얼토너먼트 등급
 	int					nDTLastWeekGrade;	
 
-	// 아이템 정보 추가
 	MUID				uidEquipedItem[MMCIP_END];
 	unsigned long int	nEquipedItemCount[MMCIP_END];
 };
-
-//버프정보임시주석 
-/*
-struct MTD_CharBuffInfo
-{
-	MShortBuffInfo	ShortBuffInfo[MAX_CHARACTER_SHORT_BUFF_COUNT];	
-};*/
 
 struct MTD_BuffInfo
 {
@@ -76,7 +59,6 @@ struct MTD_BuffInfo
 	unsigned short		nRemainedTime;	// 버프 몇초 남았나 (초단위로 절사), 아이템에 따라서는 횟수가 담길 수도 있다
 };
 
-// 내 캐릭터 정보의 추가 정보
 struct MTD_MyExtraCharInfo
 {
 	char	nLevelPercent;		///< 현재 경험치 습득 퍼센트

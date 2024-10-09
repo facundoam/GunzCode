@@ -32,13 +32,13 @@ enum MMATCH_GAMETYPE {
 */
 	MMATCH_GAMETYPE_MAX,
 };
-// 모드가 추가되면 리플레이 저장용 모드 약어도 추가해야 한다 (cpp)
 extern const char* MMatchGameTypeAcronym[MMATCH_GAMETYPE_MAX];
 
 #define		MAX_RELAYMAP_LIST_COUNT			20
-struct RelayMap
-{
-	int				nMapID;
+struct RelayMap {
+	int nMapID;
+
+	RelayMap() : nMapID(-1) {}  // Constructor initializes nMapID to -1
 };
 
 enum RELAY_MAP_TYPE

@@ -86,8 +86,10 @@ public:
 	virtual ~MAsyncHttp();
 
 	const char* GetBasePath()				{ return m_szBasePath; }
-	void SetBasePath(const char* pszPath)	{ strcpy(m_szBasePath, pszPath); }
-
+	void SetBasePath(const char* pszPath) {
+		// Ensure the destination buffer size is appropriate, adjust _MAX_PATH if needed
+		strcpy_s(m_szBasePath, sizeof(m_szBasePath), pszPath);
+	}
 	bool Get(const char* pszURL);
 };
 

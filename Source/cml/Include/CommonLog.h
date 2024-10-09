@@ -13,70 +13,83 @@
 
 // Base Class of General Log System
 class CMLog {
-public :
+public:
 	virtual void Init() = 0;
 	virtual void Shutdown() = 0;
-	virtual void Print( const char *pFormat ) = 0;
+	virtual void Print(const char* pFormat) = 0;
 };
 
 /* CMNullLog */
 class CMNullLog : public CMLog {
-public :
-	virtual void Init(){}
-	virtual void Shutdown(){}
-	virtual void Print( const char *pFormat ){}
+public:
+	virtual void Init() {}
+	virtual void Shutdown() {}
+	virtual void Print(const char* pFormat) {}
 };
 
 /* CMFileLog */
 class CMFileLog : public CMLog {
-	char *m_pFileName;
-public :
-	CMFileLog( char *szFileName = NULL ){
-		if( szFileName ){
-			m_pFileName = strdup(szFileName);
-		} else {
-			m_pFileName = strdup("mlog.txt");
+	char* m_pFileName;
+public:
+	CMFileLog(char* szFileName = NULL) {
+		if (szFileName) {
+			m_pFileName = _strdup(szFileName);
+		}
+		else {
+			m_pFileName = _strdup("mlog.txt");
 		}
 	}
 
-	virtual ~CMFileLog(){
+	virtual ~CMFileLog() {
 		Shutdown();
 	}
 
-	virtual void Init(){
+	virtual void Init() {
 		DeleteFile(m_pFileName);
 	}
 
-	virtual void Shutdown(){
-		if(m_pFileName){
+	virtual void Shutdown() {
+		if (m_pFileName) {
 			free(m_pFileName);
 			m_pFileName = NULL;
 		}
 	}
 
-	virtual void Print( const char *string ){
-		FILE *pFile;
+	virtual void Print(const char* string) {
+		FILE* pFile = nullptr;
 
-		pFile = fopen( m_pFileName, "a" );
-		if( !pFile ){
-			pFile = fopen( m_pFileName, "w" );
-			fclose( pFile );
-			pFile = fopen( m_pFileName, "a" );
+		// Open file for appending, with more secure fopen_s
+		if (fopen_s(&pFile, m_pFileName, "a") != 0 || !pFile) {
+			// If opening for append fails, attempt to create a new file
+			if (fopen_s(&pFile, m_pFileName, "w") != 0 || !pFile) {
+				// Failed to open file for writing, handle the error (logging, etc.)
+				return;
+			}
+			fclose(pFile); // Close the newly created file
+			// Try again to open in append mode
+			if (fopen_s(&pFile, m_pFileName, "a") != 0 || !pFile) {
+				// If it still fails, return
+				return;
+			}
 		}
-		fprintf(pFile,string);
+
+		// Write to the file using fprintf safely, ensuring proper formatting
+		fprintf(pFile, "%s", string);
+
+		// Close the file
 		fclose(pFile);
 	}
 };
 
 class CMDebugStringLog : public CMLog {
-public :
-	virtual void Init(){
+public:
+	virtual void Init() {
 		//DO NOTHING
 	}
-	virtual void Shutdown(){
+	virtual void Shutdown() {
 		//DO NOTHING
 	}
-	virtual void Print( const char *pFormat ){
+	virtual void Print(const char* pFormat) {
 #ifdef _DEBUG
 		OutputDebugString(pFormat);
 #endif
@@ -85,8 +98,8 @@ public :
 
 
 
-void SetLogHandler( CMLog *pLog );
-void Log( const char *pFormat, ... );
+void SetLogHandler(CMLog* pLog);
+void Log(const char* pFormat, ...);
 
 
 

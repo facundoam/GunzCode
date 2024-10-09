@@ -10,9 +10,7 @@
 using namespace std;
 
 static char logfilename[256];
-//static char szLoghistory[MLOG_DEFAULT_HISTORY_COUNT][1024];
-//static int nHead=0,nTail=0;
-static int g_nLogMethod=MLOGSTYLE_DEBUGSTRING;
+static int g_nLogMethod = MLOGSTYLE_DEBUGSTRING;
 
 const char* MGetLogFileName()
 {
@@ -21,96 +19,74 @@ const char* MGetLogFileName()
 
 void InitLog(int logmethodflags, const char* pszLogFileName)
 {
-//	int i;
-	g_nLogMethod=logmethodflags;
-/*
-	nHead=0;nTail=0;
-	for(i=0;i<MLOG_DEFAULT_HISTORY_COUNT;i++)
-		szLoghistory[i][0]=0;
-*/
-	if(g_nLogMethod&MLOGSTYLE_FILE)
+	g_nLogMethod = logmethodflags;
+
+	if (g_nLogMethod & MLOGSTYLE_FILE)
 	{
-		GetFullPath(logfilename, pszLogFileName);
-		FILE *pFile;
-		pFile=fopen(logfilename,"w+");
-		if( !pFile ) return;
-		fclose(pFile);
+		// Safer file opening
+		FILE* pFile = nullptr;
+		errno_t err = fopen_s(&pFile, logfilename, "w+");
+		if (err != 0 || pFile == nullptr) {
+			// Handle file opening failure
+			return;
+		}
+
+		fclose(pFile); // Close the file if successfully opened
 	}
 }
 
 // history 봉인 !
 
-void __cdecl MLog(const char *pFormat,...)
+void __cdecl MLog(const char* pFormat, ...)
 {
-//	char *temp=szLoghistory[nTail];
+	//	char *temp=szLoghistory[nTail];
 
-	char temp[16*1024];	// 16k
+	char temp[16 * 1024];	// 16k
 
 	va_list args;
 
-	va_start(args,pFormat);
-	vsprintf(temp,pFormat,args);
+	va_start(args, pFormat);
+	vsprintf(temp, pFormat, args);
 	va_end(args);
 
 
-	if(g_nLogMethod&MLOGSTYLE_FILE)
+	if (g_nLogMethod & MLOGSTYLE_FILE)
 	{
-		FILE *pFile;
-		pFile = fopen( logfilename, "a" );
-		if( !pFile ) pFile=fopen(logfilename,"w");
-		if( pFile==NULL ) return;
-		fprintf(pFile,temp);
+		FILE* pFile;
+		pFile = fopen(logfilename, "a");
+		if (!pFile) pFile = fopen(logfilename, "w");
+		if (pFile == NULL) return;
+		fprintf(pFile, temp);
 		fclose(pFile);
 	}
-	if(g_nLogMethod&MLOGSTYLE_DEBUGSTRING)
+	if (g_nLogMethod & MLOGSTYLE_DEBUGSTRING)
 	{
 #ifdef _DEBUG
 		OutputDebugString(temp);
 #endif
 	}
-
-	/*
-	nTail=(nTail+1)%MLOG_DEFAULT_HISTORY_COUNT;
-	if((nTail==(nHead+1)%MLOG_DEFAULT_HISTORY_COUNT)&&(szLoghistory[nTail][0]))
-		nHead=(nHead+1)%MLOG_DEFAULT_HISTORY_COUNT;
-
-	*/
 }
 
-/*
-char *MGetLogHistory(int i)
-{
-	return NULL;
-	MASSERT((i>=0)&&(i<MLOG_DEFAULT_HISTORY_COUNT));
-	return szLoghistory[(i+nHead)%MLOG_DEFAULT_HISTORY_COUNT];
-}
-
-int MGetLogHistoryCount()
-{
-	return 0;
-	return (nHead<nTail)?(nTail-nHead):MLOG_DEFAULT_HISTORY_COUNT;
-}
-*/
 
 #ifdef _WIN32
 #include <windows.h>
 #include <crtdbg.h>
 
-void __cdecl MMsg(const char *pFormat,...)
+void __cdecl MMsg(const char* pFormat, ...)
 {
-    char buff[256];
+	char buff[256];
 
-    wvsprintf(buff, pFormat, (char *)(&pFormat+1));
-    lstrcat(buff, "\r\n");
-    MessageBox( NULL, buff, "RealSpace Message", MB_OK );
-	mlog(buff);mlog("\n");
+	wvsprintf(buff, pFormat, (char*)(&pFormat + 1));
+	lstrcat(buff, "\r\n");
+	MessageBox(NULL, buff, "RealSpace Message", MB_OK);
+	mlog(buff); mlog("\n");
 }
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // exception handler
 
-void MShowContextRecord(CONTEXT* p)
+static void MShowContextRecord(CONTEXT* p)
 {
 	mlog("[Context]\n");
 
@@ -122,28 +98,28 @@ void MShowContextRecord(CONTEXT* p)
 	mlog("\n");
 }
 
-void MShowStack(DWORD* sp, int nSize)
+static void MShowStack(DWORD* sp, int nSize)
 {
 	mlog("[Stack]");
 
-	for(int i=0; i<nSize; i++){
-		if((i%8)==0) mlog("\n");
-		mlog("%08x ", *(sp+i));
+	for (int i = 0; i < nSize; i++) {
+		if ((i % 8) == 0) mlog("\n");
+		mlog("%08x ", *(sp + i));
 	}
 
 	mlog("\n");
 }
 
-void GetMemoryInfo(DWORD* dwTotalMemKB, DWORD* dwAvailMemKB, DWORD* dwVirtualMemKB)
+static void GetMemoryInfo(DWORD* dwTotalMemKB, DWORD* dwAvailMemKB, DWORD* dwVirtualMemKB)
 {
-	MEMORYSTATUSEX statex;
+	MEMORYSTATUSEX statex{};
 	statex.dwLength = sizeof(statex);
-	if(!GlobalMemoryStatusEx(&statex)) return;
+	if (!GlobalMemoryStatusEx(&statex)) return;
 
-	DWORDLONG lMemTotalKB = (statex.ullTotalPhys / 1024 );
+	DWORDLONG lMemTotalKB = (statex.ullTotalPhys / 1024);
 	*dwTotalMemKB = (DWORD)lMemTotalKB;
 
-	DWORDLONG lAvailMemKB = (statex.ullAvailPhys / 1024 );
+	DWORDLONG lAvailMemKB = (statex.ullAvailPhys / 1024);
 	*dwAvailMemKB = (DWORD)lAvailMemKB;
 
 	DWORDLONG lVirtualMemKB = (statex.ullTotalVirtual / 1024);
@@ -154,8 +130,8 @@ void GetMemoryInfo(DWORD* dwTotalMemKB, DWORD* dwAvailMemKB, DWORD* dwVirtualMem
 DWORD MFilterException(LPEXCEPTION_POINTERS p)
 {
 	char tmpbuf[128];
-	_strtime( tmpbuf );
-	mlog("Crash ( %s )\n",tmpbuf);
+	_strtime(tmpbuf);
+	mlog("Crash ( %s )\n", tmpbuf);
 
 	mlog("Build " __DATE__" " __TIME__"\n\n");
 
@@ -176,26 +152,20 @@ DWORD MFilterException(LPEXCEPTION_POINTERS p)
 	mlog("#Param	:	%08x\n", p->ExceptionRecord->NumberParameters);
 	mlog("other	:	%08x\n", p->ExceptionRecord->ExceptionRecord);
 	mlog("\n");
-	
+
 	MShowContextRecord(p->ContextRecord);
 	MShowStack((DWORD*)p->ContextRecord->Esp, 128);
 
 	mlog("\n");
 
-	// string str;
-	// GetCrashInfo(p,str);
-
-	char szCrashLogFileName[ 1024 ] = {0,};
-	_snprintf( szCrashLogFileName, 1024, "Crash_%s", MGetLogFileName() );
-	WriteCrashInfo( p, szCrashLogFileName );
-
-	//mlog(str.c_str());
-	//mlog("\n");
+	char szCrashLogFileName[1024] = { 0, };
+	_snprintf(szCrashLogFileName, 1024, "Crash_%s", MGetLogFileName());
+	WriteCrashInfo(p, szCrashLogFileName);
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-void MSEHTranslator(UINT nSeCode, _EXCEPTION_POINTERS* pExcPointers)
+static void MSEHTranslator(UINT nSeCode, _EXCEPTION_POINTERS* pExcPointers)
 {
 	MFilterException(pExcPointers);
 
@@ -208,9 +178,9 @@ void MSEHTranslator(UINT nSeCode, _EXCEPTION_POINTERS* pExcPointers)
 
 void MInstallSEH()	// Compile Option에 /EHa 있어야함
 {
-	#ifndef _DEBUG
-		_set_se_translator(MSEHTranslator);
-	#endif
+#ifndef _DEBUG
+	_set_se_translator(MSEHTranslator);
+#endif
 }
 
 #ifndef _PUBLISH
@@ -231,52 +201,52 @@ DWORD g_dwEnableTime;
 
 void MInitProfile()
 {
-	for(int i=0;i<MAX_PROFILE_COUNT;i++)
+	for (int i = 0; i < MAX_PROFILE_COUNT; i++)
 	{
-		g_ProfileItems[i].szName[0]=0;
-		g_ProfileItems[i].dwTotalTime=0;
-		g_ProfileItems[i].dwCalledCount=0;
+		g_ProfileItems[i].szName[0] = 0;
+		g_ProfileItems[i].dwTotalTime = 0;
+		g_ProfileItems[i].dwCalledCount = 0;
 	}
-	g_dwEnableTime=timeGetTime();
+	g_dwEnableTime = timeGetTime();
 }
 
-void MBeginProfile(int nIndex,const char *szName)
+void MBeginProfile(int nIndex, const char* szName)
 {
-	if(g_ProfileItems[nIndex].szName[0]==0)
-		strcpy(g_ProfileItems[nIndex].szName,szName);
+	if (g_ProfileItems[nIndex].szName[0] == 0)
+		strcpy(g_ProfileItems[nIndex].szName, szName);
 
-	g_ProfileItems[nIndex].dwStartTime=timeGetTime();
+	g_ProfileItems[nIndex].dwStartTime = timeGetTime();
 	g_ProfileItems[nIndex].dwCalledCount++;
 }
 
 void MEndProfile(int nIndex)
 {
-	g_ProfileItems[nIndex].dwTotalTime+= 
-		timeGetTime()-g_ProfileItems[nIndex].dwStartTime;
+	g_ProfileItems[nIndex].dwTotalTime +=
+		timeGetTime() - g_ProfileItems[nIndex].dwStartTime;
 }
 
-void MSaveProfile(const char *filename)
+void MSaveProfile(const char* filename)
 {
-	DWORD dwTotalTime = timeGetTime()-g_dwEnableTime;
+	DWORD dwTotalTime = timeGetTime() - g_dwEnableTime;
 
-	FILE *file=fopen(filename,"w+");
+	FILE* file = fopen(filename, "w+");
 
-	fprintf(file," total time = %6.3f seconds \n",(float)dwTotalTime*0.001f);
+	fprintf(file, " total time = %6.3f seconds \n", (float)dwTotalTime * 0.001f);
 
-	fprintf(file,"id   (loop ms)  seconds     %%        calledcount   name \n");
-	fprintf(file,"=========================================================\n");
+	fprintf(file, "id   (loop ms)  seconds     %%        calledcount   name \n");
+	fprintf(file, "=========================================================\n");
 
 	float cnt = (float)g_ProfileItems[0].dwCalledCount;
 
-	for(int i=0;i<MAX_PROFILE_COUNT;i++)
+	for (int i = 0; i < MAX_PROFILE_COUNT; i++)
 	{
-		if(g_ProfileItems[i].dwTotalTime>0)
+		if (g_ProfileItems[i].dwTotalTime > 0)
 		{
-			fprintf(file,"(%05d) %8.3f %8.3f ( %6.3f %% , %6u) %s \n",i,((float)g_ProfileItems[i].dwTotalTime) / cnt,
-				0.001f*(float)g_ProfileItems[i].dwTotalTime, 
-				100.f*(float)g_ProfileItems[i].dwTotalTime/(float)dwTotalTime
-				,g_ProfileItems[i].dwCalledCount
-				,g_ProfileItems[i].szName);
+			fprintf(file, "(%05d) %8.3f %8.3f ( %6.3f %% , %6u) %s \n", i, ((float)g_ProfileItems[i].dwTotalTime) / cnt,
+				0.001f * (float)g_ProfileItems[i].dwTotalTime,
+				100.f * (float)g_ProfileItems[i].dwTotalTime / (float)dwTotalTime
+				, g_ProfileItems[i].dwCalledCount
+				, g_ProfileItems[i].szName);
 		}
 	}
 	fclose(file);
@@ -284,8 +254,8 @@ void MSaveProfile(const char *filename)
 
 #else
 void MInitProfile() {}
-void MBeginProfile(int nIndex,const char *szName) {}
+void MBeginProfile(int nIndex, const char* szName) {}
 void MEndProfile(int nIndex) {}
-void MSaveProfile(const char *file) {}
+void MSaveProfile(const char* file) {}
 
 #endif

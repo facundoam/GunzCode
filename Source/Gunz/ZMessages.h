@@ -440,8 +440,6 @@
 #define MSG_WORD_ON								9500		///< ON
 #define MSG_WORD_OFF							9501		///< OFF
 
-#define MSG_DISCONNMSG_XTRAPHACK				9601		///< X-TRAP에서 해킹 검출시 출력 메시지.
-
 #define MSG_RECEIVE_GAMBLE_ITEM					9701		///< '$1' 아이템을 받았습니다.
 
 #define MSG_CONFIRM_RESTART_CHANGE_LANGUAGE		9801		///< 언어변경은 재시작 후 반영됩니다. 지금 재시작하시겠습니까?

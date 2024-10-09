@@ -67,7 +67,7 @@ public:
 			m_nUserData=nUserData;
 		}
 
-	int GetUserData() { return m_nUserData; }
+	int GetUserData() const { return m_nUserData; }
 };
 
 class ZGameInterface : public ZInterface {
@@ -325,10 +325,10 @@ public:
 
 	void SetCursorEnable(bool bEnable);
 	void OnResetCursor();
-	bool IsCursorEnable() { return m_bCursor; }
+	bool IsCursorEnable() const { return m_bCursor; }
 
 	bool SetState(GunzState nState);
-	GunzState GetState(void){ return m_nState; }
+	GunzState GetState(void) const { return m_nState; }
 	
 	void UpdateBlueRedTeam(void);		// 동환이가 추가
 
@@ -357,10 +357,10 @@ public:
 	void ReserveLeaveStage();	// 스테이지에서 나갈때 일정시간 흐른뒤 나간다
 	void ReserveLeaveBattle();	// 대기방으로 나갈떄 일정시간 흐른뒤 나간다
 	void FinishGame(void);
-	bool IsLeaveBattleReserved() { return m_bLeaveBattleReserved; }
+	bool IsLeaveBattleReserved() const { return m_bLeaveBattleReserved; }
 
 	void ReserveResetApp(bool b)	{ m_bReserveResetApp = b; }
-	bool IsReservedResetApp()		{ return m_bReserveResetApp; }
+	bool IsReservedResetApp() const { return m_bReserveResetApp; }
 
 	void SaveScreenShot();
 
@@ -371,10 +371,10 @@ public:
 	void ShowErrorMessage(const char* szErrorMsg, int nErrorID);
 	
 	void ShowInterface(bool bShowInterface);
-	bool IsShowInterface() { return m_bShowInterface; }
+	bool IsShowInterface() const { return m_bShowInterface; }
 
 	void SetTeenVersion(bool bt) { m_bTeenVersion = bt; }
-	bool GetTeenVersion() { return m_bTeenVersion; }
+	bool GetTeenVersion() const { return m_bTeenVersion; }
 
 	void OnCharSelect(void);
 
@@ -444,10 +444,6 @@ public:
 
 	// 리플레이
 	void OnReplay();
-
-	// XTrap
-	void OnRequestXTrapSeedKey(unsigned char *pComBuf);			// add sgk 0402
-
 	void OnDisconnectMsg( const DWORD dwMsgID );
 	void ShowDisconnectMsg( DWORD errStrID, DWORD delayTime );
 
@@ -466,12 +462,10 @@ public:
 
 	void SetAgentPing(DWORD nIP, DWORD nTimeStamp);
 
-	void OnRequestGameguardAuth( const DWORD dwIndex, const DWORD dwValue1, const DWORD dwValue2, const DWORD dwValue3 );
-
 	void SetErrMaxPlayerDelayTime(DWORD dDelayTime) { m_dErrMaxPalyerDelayTime = dDelayTime; }
-	DWORD GetErrMaxPlayerDelayTime() { return m_dErrMaxPalyerDelayTime; }
+	DWORD GetErrMaxPlayerDelayTime() const { return m_dErrMaxPalyerDelayTime; }
 	void SetErrMaxPlayer(bool bErrMaxPalyer) { m_bErrMaxPalyer = bErrMaxPalyer; }
-	bool IsErrMaxPlayer() { return m_bErrMaxPalyer == 0 ? false : true; }
+	bool IsErrMaxPlayer() const { return m_bErrMaxPalyer == 0 ? false : true; }
 
 	virtual void MultiplySize(float byIDLWidth, float byIDLHeight, float byCurrWidth, float byCurrHeight);
 
@@ -479,13 +473,13 @@ public:
 	void SetDuelTournamentCharacterList(MDUELTOURNAMENTTYPE nType, const vector<DTPlayerInfo>& vecDTPlayerInfo);
 	const vector<DTPlayerInfo>& GetVectorDTPlayerInfo()	{ return m_vecDTPlayerInfo; }
 	void SetDuelTournamantType(MDUELTOURNAMENTTYPE eType)		{ m_eDuelTournamentType = eType; }
-	MDUELTOURNAMENTTYPE GetDuelTournamentType()		{ return m_eDuelTournamentType; }
+	MDUELTOURNAMENTTYPE GetDuelTournamentType() const { return m_eDuelTournamentType; }
 
 	void UpdateDuelTournamantMyCharInfoUI();
 	void UpdateDuelTournamantMyCharInfoPreviousUI();
 
 // 릴레이맵
-	bool GetIsGameFinishLeaveBattle()			{ return m_bGameFinishLeaveBattle; }
+	bool GetIsGameFinishLeaveBattle() const { return m_bGameFinishLeaveBattle; }
 
 	// 바깥에서 얻을만한 인터페이스들 (__forceinline 는 dll-injection 핵 방해를 위한 것)
 	__forceinline ZGameClient* GetGameClient(void)			{ return m_spGameClient; }

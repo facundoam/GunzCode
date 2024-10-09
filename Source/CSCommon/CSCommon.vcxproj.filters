@@ -605,9 +605,6 @@
     <ClInclude Include="Include\MBaseLocale.h">
       <Filter>Locate</Filter>
     </ClInclude>
-    <ClInclude Include="Include\MLocaleDefine.h">
-      <Filter>Locate</Filter>
-    </ClInclude>
     <ClInclude Include="Include\MMatchLocale.h">
       <Filter>Locate</Filter>
     </ClInclude>

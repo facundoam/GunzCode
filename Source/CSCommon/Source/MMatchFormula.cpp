@@ -314,39 +314,28 @@ int MMatchFormula::GetLevelPercent(unsigned long int nExp, int nNowLevel)
 
 int MMatchFormula::GetClanBattlePoint(int nWinnerClanPoint, int nLoserClanPoint, int nOneTeamMemberCount)
 {
-	// http://iworks.maietgames.com/mdn/wiki.php/클랜전 에 공식이 나와있음
-/*
-Delta 만큼 이긴 클랜에 점수 더하고 진 클랜에 점수 빼기
-(k=이긴 클랜 점수) (v=진 클랜 점수)
+	// Use powf() for float precision
+	float Delta1 = 5.0f / (1.0f + powf(5.0f, float(nWinnerClanPoint - nLoserClanPoint) / 1000.0f));
+	float Delta2 = float(nOneTeamMemberCount * 2);
 
-Delta1 = 5 / 1 + 10^((k-v)/1000)
-Delta2 = tc / 10^((wc-lc)/50)
-(tc=총인원) (wc=이긴팀인원) (lc=진팀인원)
-Delta = Delta1+Delta2
-*/
-
-	float Delta1 = 5.0f / (1 + pow(5.0f, float(nWinnerClanPoint-nLoserClanPoint) / 1000.0f));
-	float Delta2 = float(nOneTeamMemberCount*2);
+	// Calculate Delta and ensure it's at least 1
 	int Delta = int(Delta1 + Delta2);
 	if (Delta < 1) Delta = 1;
 
 	return Delta;
 }
 
-// 우선 왼쪽 것을 검사한 후에 오른쪽 것을 검사해서 반지 한개만 적용한다. 프리미엄 IP도 검사
 float MMatchFormula::CalcXPBonusRatio(MMatchObject* pCharObj, MMatchItemBonusType nBonusType)
 {
 	float fBonusRatio = 0.0f;
 
-	// 넷마블 PC방 보너스 계산 ////////////////////////////////////////////////////////////
 	if (pCharObj->GetAccountInfo()->m_nPGrade == MMPG_PREMIUM_IP)
 	{
-		const float PREMIUM_IP_BONUS = 0.2f;	// 1.2배
+		const float PREMIUM_IP_BONUS = 0.2f;
 
 		fBonusRatio += PREMIUM_IP_BONUS;
 	}
 
-	// 경험치 아이템 계산 //////////////////////////////////////////////////////////////////
 	MMatchEquipedItem* pEquipedItems = &pCharObj->GetCharInfo()->m_EquipedItem;
 	MMatchItem*		pItem;
 	MMatchItemDesc* pItemDesc;

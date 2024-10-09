@@ -368,15 +368,9 @@ bool RFont::Create(const TCHAR* szFontName, int nHeight, bool bBold/* =false */,
 
 	if (m_pFontTexture && nHeight > m_pFontTexture->GetCellSize())
 	{
-#ifdef _DEBUG
-		char sz[256];
-		sprintf(sz, "RFont ChangeCellSize (%d) -> (%d)\n", m_pFontTexture->GetCellSize(), nHeight);
-		OutputDebugStr(sz);
-#endif
 		m_pFontTexture->ChangeCellSize(nHeight);
 	}
 		
-
 	_ASSERT(nHeight <= m_pFontTexture->GetCellSize());
 
 	return true;

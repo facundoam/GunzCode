@@ -66,18 +66,6 @@ void ZNHNUSA_Report::ReportStartGame()
 }
 
 
-void ZNHNUSA_Report::ReportInitGameGuard()
-{
-	char szReport[ MAX_REPORT_LEN ] = {0,};
-	sprintf( szReport, "id=%s&value=%d", m_szUserID, 301 );
-	if( 0 != HanReportSendPosLog(szReport) )
-	{
-		ASSERT( 0 );
-		mlog( "ZNHNUSA_Report::ReportInitGameGuard - fail(%s)\n", szReport );
-	}
-}
-
-
 void ZNHNUSA_Report::ReportInitComplete()
 {
 	char szReport[ MAX_REPORT_LEN ] = {0,};

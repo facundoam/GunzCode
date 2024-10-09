@@ -143,7 +143,7 @@ public:
 	__forceinline unsigned int GetFileListCRC()			{ return m_fileCheckList.GetCRC32(); }
 
 	bool InitLocale();
-	void PreCheckArguments();
+	void PreCheckArguments() const;
 };
 
 __forceinline ZApplication* ZApplication::GetInstance(void)

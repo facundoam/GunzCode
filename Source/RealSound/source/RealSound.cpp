@@ -1,32 +1,16 @@
-/*
-	RealSound.cpp
-	--------
-
-	RealSound Main Module
-	RealSound Object는 RealSound Class Library의 최상위 객체로서
-	Manager역할을 담당하게 된다.
-
-	Programming by Chojoongpil
-	All copyright 1997 (c), MAIET entertainment sotware
-*/
 #include "stdafx.h"
 #include <crtdbg.h>
 #include "RealSound.h"
 
 #include "MDebug.h"
+#include <tchar.h>
 
 
 #ifdef _DEBUG
-	#define _D		::OutputDebugString
+#define _D		::OutputDebugString
 #else 
-	#define _D		
+#define _D		
 #endif
-
-/////////////////////////////////////////
-// RealSound Class Implement
-
-/////////////////////////////////////////
-// Constructor & Destructor
 
 
 ENUMDEVICEINFO RealSound::m_EnumDeviceInfos[MAX_ENUM_DEVICE_COUNT];
@@ -49,7 +33,7 @@ RealSound::~RealSound()
 
 void RealSound::InitEnumInfo(void)
 {
-	for(int i=0; i<MAX_ENUM_DEVICE_COUNT; i++){
+	for (int i = 0; i < MAX_ENUM_DEVICE_COUNT; i++) {
 		m_EnumDeviceInfos[i].lpGUID = NULL;
 		m_EnumDeviceInfos[i].szDescription[0] = 0;
 	}
@@ -59,12 +43,17 @@ void RealSound::InitEnumInfo(void)
 
 BOOL CALLBACK RealSound::EnumProc(LPGUID lpGUID, LPCTSTR lpszDesc, LPCTSTR lpszDrvName, LPVOID lpContext)
 {
- 
 	m_EnumDeviceInfos[m_nEnumDeviceCount].lpGUID = lpGUID;
-	strcpy(m_EnumDeviceInfos[m_nEnumDeviceCount].szDescription, lpszDesc);
+
+	// Use _tcsncpy to handle both Unicode and ANSI
+	_tcsncpy(m_EnumDeviceInfos[m_nEnumDeviceCount].szDescription, lpszDesc, sizeof(m_EnumDeviceInfos[m_nEnumDeviceCount].szDescription) / sizeof(TCHAR));
+
+	// Ensure null termination
+	m_EnumDeviceInfos[m_nEnumDeviceCount].szDescription[sizeof(m_EnumDeviceInfos[m_nEnumDeviceCount].szDescription) / sizeof(TCHAR) - 1] = '\0';
+
 	m_nEnumDeviceCount++;
 
-    return TRUE;
+	return TRUE;
 }
 
 bool RealSound::Enumerate(void)
@@ -81,23 +70,23 @@ int RealSound::GetEnumDeviceCount(void)
 
 GUID* RealSound::GetEnumDeviceGUID(int i)
 {
-	if(i>=m_nEnumDeviceCount || i<0) return NULL;
+	if (i >= m_nEnumDeviceCount || i < 0) return NULL;
 	return m_EnumDeviceInfos[i].lpGUID;
 }
 
 char* RealSound::GetEnumDeviceDescription(int i)
 {
-	if(i>=m_nEnumDeviceCount || i<0) return NULL;
+	if (i >= m_nEnumDeviceCount || i < 0) return NULL;
 	return m_EnumDeviceInfos[i].szDescription;
 }
 
 void RealSound::Destroy()
 {
-	if( m_lpDSListener ){
+	if (m_lpDSListener) {
 		m_lpDSListener->Release();
 		m_lpDSListener = NULL;
 	}
-	if( m_lpDS ){
+	if (m_lpDS) {
 		m_lpDS->Release();
 		m_lpDS = NULL;
 	}
@@ -106,45 +95,45 @@ void RealSound::Destroy()
 #define DEFAULT_ROLLOFF_FACTOR			10.0f
 
 
-bool RealSound::Create( HWND hWnd, LPGUID lpGUID )
-{	
-	if( !hWnd ){
+bool RealSound::Create(HWND hWnd, LPGUID lpGUID)
+{
+	if (!hWnd) {
 		_D("RealSound::Create error : hWnd is NULL\n");
 		return FALSE;
 	}
-	if( m_lpDS ){
+	if (m_lpDS) {
 		_D("RealSound::Create error : DirectSound can initialize once.\n");
 		return FALSE;
 	}
-	
+
 	m_hOwnerWnd = hWnd;
 
-	if( DirectSoundCreate8( lpGUID, &m_lpDS, NULL ) != DS_OK ){
+	if (DirectSoundCreate8(lpGUID, &m_lpDS, NULL) != DS_OK) {
 		_D("RealSound::Create error : DirectSoundCreate Error");
 		return false;
 	}
-	
-	if( m_lpDS->SetCooperativeLevel( m_hOwnerWnd, DSSCL_PRIORITY ) != DS_OK )
+
+	if (m_lpDS->SetCooperativeLevel(m_hOwnerWnd, DSSCL_PRIORITY) != DS_OK)
 	{
-		if( m_lpDS->SetCooperativeLevel( m_hOwnerWnd, DSSCL_NORMAL ) != DS_OK )
+		if (m_lpDS->SetCooperativeLevel(m_hOwnerWnd, DSSCL_NORMAL) != DS_OK)
 		{
 			_D("RealSound::Create error : SetCooperativeLevel Error");
-			return false;	
+			return false;
 		}
 	}
-	
+
 	LPDIRECTSOUNDBUFFER pDSBPrimary;
 	DSBUFFERDESC dsbdesc;
 	ZeroMemory(&dsbdesc, sizeof(DSBUFFERDESC));
 	dsbdesc.dwSize = sizeof(DSBUFFERDESC);
 	// 믹싱할때 소리 왜곡이 생겨서 DSBCAPS_LOCSOFTWARE로 우선 처리
-	dsbdesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLVOLUME |  DSBCAPS_PRIMARYBUFFER | DSBCAPS_LOCSOFTWARE;// | DSBCAPS_CTRLFX;
-	if( FAILED( m_lpDS->CreateSoundBuffer( &dsbdesc, &pDSBPrimary, NULL ) ) )
+	dsbdesc.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_CTRLVOLUME | DSBCAPS_PRIMARYBUFFER | DSBCAPS_LOCSOFTWARE;// | DSBCAPS_CTRLFX;
+	if (FAILED(m_lpDS->CreateSoundBuffer(&dsbdesc, &pDSBPrimary, NULL)))
 	{
-		mlog( "RealSound Primary Buffer Fail..\n");
+		mlog("RealSound Primary Buffer Fail..\n");
 		return false;
 	}
-	
+
 
 	// Default Setting 16Bit, 44KHz
 	WAVEFORMATEX wfm;
@@ -158,7 +147,7 @@ bool RealSound::Create( HWND hWnd, LPGUID lpGUID )
 	wfm.cbSize = 0;
 	pDSBPrimary->SetFormat(&wfm);
 
-	if( FAILED( pDSBPrimary->QueryInterface( IID_IDirectSound3DListener8, (VOID**)&m_lpDSListener ) ) ){
+	if (FAILED(pDSBPrimary->QueryInterface(IID_IDirectSound3DListener8, (VOID**)&m_lpDSListener))) {
 		return false;
 	}
 
@@ -181,9 +170,9 @@ void RealSound::SetListenerOrientation(float dirx, float diry, float dirz, float
 
 void RealSound::SetRolloffFactor(float t)
 {
-	if( t < DS3D_MINROLLOFFFACTOR )
+	if (t < DS3D_MINROLLOFFFACTOR)
 		t = DS3D_MINROLLOFFFACTOR;
-	else if( t > DS3D_MAXROLLOFFFACTOR )
+	else if (t > DS3D_MAXROLLOFFFACTOR)
 		t = DS3D_MAXROLLOFFFACTOR;
 	m_lpDSListener->SetRolloffFactor(t, DS3D_IMMEDIATE);
 }
@@ -198,8 +187,8 @@ void RealSound::SetDopplerFactor(float t)
 	m_lpDSListener->SetDopplerFactor(t, DS3D_IMMEDIATE);
 }
 
-void RealSound::CommitDeferredSettings()	
+void RealSound::CommitDeferredSettings()
 {
-	if(FAILED(m_lpDSListener->CommitDeferredSettings()))
+	if (FAILED(m_lpDSListener->CommitDeferredSettings()))
 		mlog("Failed to Calculate Listener's Position\n");
-}	
+}

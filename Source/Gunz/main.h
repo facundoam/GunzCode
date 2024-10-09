@@ -6,8 +6,8 @@
 #pragma warning(disable:4099)
 
 #ifdef _DEBUG
-#pragma comment(lib,"cmld.lib")
-#pragma comment(lib,"mint2d.lib")
+#pragma comment(lib,"cml.lib")
+#pragma comment(lib,"mint2.lib")
 #pragma comment(lib,"RealSound.lib")
 #pragma comment(lib,"RealSpace2.lib")
 #pragma comment(lib,"CSCommonE.lib")

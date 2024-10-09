@@ -104,7 +104,7 @@
     </ClCompile>
     <Lib>
       <AdditionalDependencies>lib\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>Lib\cmld.lib</OutputFile>
+      <OutputFile>Lib\cml.lib</OutputFile>
       <AdditionalLibraryDirectories>Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>

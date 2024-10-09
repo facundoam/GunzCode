@@ -28,7 +28,7 @@
 
 
 typedef union {
-	char*	szval;
+	char* szval;
 	int		nval;
 	float	fval;
 } CFG32V;
@@ -40,43 +40,43 @@ typedef union {
 typedef struct _tagCfgToken {
 	int		id;
 	CFG32V	v;
-} CFGTOKEN, *PCFGTOKEN, **PPCFGTOKEN;
+} CFGTOKEN, * PCFGTOKEN, ** PPCFGTOKEN;
 
 class CFGVALUE {
-public :
+public:
 	CFGTOKEN	tValue;
-	char*		szKey;
+	char* szKey;
 
-	CFGVALUE(char *Key){
-		szKey = strdup(Key);
+	CFGVALUE(char* Key) {
+		szKey = _strdup(Key);
 	}
-	
-	~CFGVALUE(){
-		if( tValue.id == 2 && tValue.v.szval != NULL ){
+
+	~CFGVALUE() {
+		if (tValue.id == 2 && tValue.v.szval != NULL) {
 			free(tValue.v.szval);
 			tValue.v.szval = NULL;
 		}
 
-		if(szKey){ free(szKey); szKey = NULL; }
+		if (szKey) { free(szKey); szKey = NULL; }
 	}
 
-	void SetInteger(int a){
+	void SetInteger(int a) {
 		tValue.id = CFG_INTEGERTYPE;		// TINTEGER
 		tValue.v.nval = a;
 	}
 
-	void SetReal(float a){
+	void SetReal(float a) {
 		tValue.id = CFG_REALTYPE;			// TREAL
 		tValue.v.fval = a;
 	}
 
-	void SetString(char *szVal){
+	void SetString(char* szVal) {
 		tValue.id = CFG_STRINGTYPE;			// TSTRING
-		tValue.v.szval = strdup(szVal);
+		tValue.v.szval = _strdup(szVal);
 	}
 
-	int GetInteger(){
-		switch(tValue.id){
+	int GetInteger() const {
+		switch (tValue.id) {
 		case CFG_INTEGERTYPE:	//INTEGER
 			return tValue.v.nval;
 		case CFG_REALTYPE:		// REAL
@@ -87,66 +87,68 @@ public :
 		return 0;
 	}
 
-	float GetReal(){
-		switch(tValue.id){
-		case CFG_INTEGERTYPE :	//INTEGER
+	float GetReal() const {
+		switch (tValue.id) {
+		case CFG_INTEGERTYPE:	//INTEGER
 			return (float)(tValue.v.nval);
-		case CFG_REALTYPE :		//REAL
+		case CFG_REALTYPE:		//REAL
 			return tValue.v.fval;
-		case CFG_STRINGTYPE :	//STRING
+		case CFG_STRINGTYPE:	//STRING
 			return (float)atof(tValue.v.szval);
 		}
 		return 0;
 	}
 
-	BOOL GetString(char *szBuffer){
-		if(tValue.id == CFG_STRINGTYPE){	//자동 타입 캐스팅을 하지 않는다.
-			strcpy(szBuffer, tValue.v.szval);
+	BOOL GetString(char* szBuffer, size_t bufferSize) const {
+		if (tValue.id == CFG_STRINGTYPE && tValue.v.szval != nullptr) {
+			// Use strncpy to avoid buffer overflow, ensuring the string is null-terminated
+			strncpy(szBuffer, tValue.v.szval, bufferSize - 1);
+			szBuffer[bufferSize - 1] = '\0';  // Ensure null termination
 			return TRUE;
 		}
-		return FALSE;		
+		return FALSE;
 	}
 
 	// 0 : Integer, 1 : Real, 2 : String
-	int GetType(){ return tValue.id; }
+	int GetType() const { return tValue.id; }
 };
-typedef CFGVALUE *PCFGVALUE;
+typedef CFGVALUE* PCFGVALUE;
 
 class CFGSECTION {
 public:
-	char	*szKey;	// SECTION NAME
+	char* szKey;	// SECTION NAME
 	CMLinkedList<CFGVALUE>	aValList;
 
-	CFGSECTION( char *Key ){
-		szKey = strdup(Key);
+	CFGSECTION(char* Key) {
+		szKey = _strdup(Key);
 	}
 
-	virtual ~CFGSECTION(){
+	virtual ~CFGSECTION() {
 		aValList.DeleteAll();
-		if(szKey){ free(szKey); szKey = NULL; }
+		if (szKey) { free(szKey); szKey = NULL; }
 	}
-	
-	PCFGVALUE GetValue( char *szName ){
+
+	PCFGVALUE GetValue(char* szName) {
 		PCFGVALUE pValue = NULL;
 		int i, cnt;
 
-		if(szName == NULL) return NULL;
+		if (szName == NULL) return NULL;
 
 		cnt = aValList.GetCount();
-		for( i = 0; i < cnt; i ++ ){
+		for (i = 0; i < cnt; i++) {
 			pValue = aValList.Get(i);
-			if(pValue!=NULL && (strcmp(pValue->szKey, szName)==0)) return pValue;
+			if (pValue != NULL && (strcmp(pValue->szKey, szName) == 0)) return pValue;
 		}
 
 		return NULL;
 	}
-	PCFGVALUE GetValue(int nIndex){
+	PCFGVALUE GetValue(int nIndex) {
 		return aValList.Get(nIndex);
 	}
 
-	int GetValueCount(){ return aValList.GetCount(); }
+	int GetValueCount() { return aValList.GetCount(); }
 };
-typedef CFGSECTION *PCFGSECTION;
+typedef CFGSECTION* PCFGSECTION;
 
 class CfgFile {
 private:
@@ -158,7 +160,7 @@ private:
 	int		m_iptr;
 	int		m_pbptr;
 
-	FILE	*m_FilePointer;
+	FILE* m_FilePointer;
 
 	int		m_nLineNum;
 	int		m_nErrorLine;
@@ -170,15 +172,15 @@ private:
 	void Unput(char c);
 	void ReadLine();
 
-	inline void Gather(char c){
+	inline void Gather(char c) {
 		m_szText[m_nTextLen++] = c;
 	}
 
-	inline int GetDigit(char c){
-		int ret =0;		
-		for(;isdigit(c)||c=='.';c=Input()){
-			if(c=='.') ret++;
-			if(ret > 1) break;
+	inline int GetDigit(char c) {
+		int ret = 0;
+		for (; isdigit(c) || c == '.'; c = Input()) {
+			if (c == '.') ret++;
+			if (ret > 1) break;
 			Gather(c);
 		}
 		Unput(c);
@@ -188,47 +190,48 @@ private:
 
 	void FreeToken(PCFGTOKEN token);
 
-public :
-	CfgFile(){ m_nErrorLine = -1; m_nLineNum = 0; m_FilePointer = NULL; }
-	virtual ~CfgFile(){ Close(); }
+public:
+	CfgFile() { m_nErrorLine = -1; m_nLineNum = 0; m_FilePointer = NULL; }
+	virtual ~CfgFile() { Close(); }
 
 	/* CFG 파일을 연다. */
-	int Open(char *szFileName);
+	int Open(char* szFileName);
 
-	BOOL OpenBinary(char *szFileName);
-	void SaveBinary(char *szFileName);
+	BOOL OpenBinary(char* szFileName);
+	void SaveBinary(char* szFileName);
 
-	void Close(){ aSectionList.DeleteAll(); m_nErrorLine = -1; }
+	void Close() { aSectionList.DeleteAll(); m_nErrorLine = -1; }
 
 	/* Open중에 생긴 에러가 몇번째 줄에서 일어난 것인가를 판별한다. */
-	int GetErrorLine(){ return m_nErrorLine; }
-	int GetTotalLine(){ return m_nLineNum; }
+	int GetErrorLine() { return m_nErrorLine; }
+	int GetTotalLine() { return m_nLineNum; }
 
 	/* 섹션 이름으로 객체를 얻어낸다. */
-	PCFGSECTION	GetSection(char *szName = NULL){
+	PCFGSECTION	GetSection(char* szName = NULL) {
 		PCFGSECTION pRet = NULL;
 		int i, cnt;
 
 		cnt = aSectionList.GetCount();
-		for( i = 0; i < cnt; i ++ ){
+		for (i = 0; i < cnt; i++) {
 			pRet = aSectionList.Get(i);
-			if(pRet!=NULL){
-				if(szName == NULL){
-					if(strcmp(pRet->szKey, "@GLOBAL")==0) return pRet;
-				} else {
-					if(strcmp(pRet->szKey, szName)==0) return pRet;
+			if (pRet != NULL) {
+				if (szName == NULL) {
+					if (strcmp(pRet->szKey, "@GLOBAL") == 0) return pRet;
+				}
+				else {
+					if (strcmp(pRet->szKey, szName) == 0) return pRet;
 				}
 			}
 		}
 		return NULL;
 	}
-	
-	PCFGSECTION GetSection(int nIndex){
+
+	PCFGSECTION GetSection(int nIndex) {
 		return aSectionList.Get(nIndex);
 	}
 
 	/* 현재 읽혀진 파일내의 섹션 갯수를 센다. */
-	int GetSectionCount(){ return aSectionList.GetCount(); }
+	int GetSectionCount() { return aSectionList.GetCount(); }
 };
 
 

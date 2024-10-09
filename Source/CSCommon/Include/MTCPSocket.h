@@ -20,6 +20,7 @@ using namespace std;
 #include "MPacket.h"
 #include "MCommand.h"
 #include "MTrafficLog.h"
+#include <WS2tcpip.h>
 
 
 class MTCPSocket;
@@ -28,7 +29,7 @@ class MClientSocket;
 
 struct MTCPSendQueueItem
 {
-	char*			pPacket;
+	char* pPacket;
 	DWORD			dwPacketSize;
 };
 
@@ -45,10 +46,10 @@ struct MSocketObj
 typedef list<MSocketObj*>			SocketList;
 typedef SocketList::iterator		SocketListItor;
 
-enum SOCKET_ERROR_EVENT {eeGeneral, eeSend, eeReceive, eeConnect, eeDisconnect, eeAccept};
+enum SOCKET_ERROR_EVENT { eeGeneral, eeSend, eeReceive, eeConnect, eeDisconnect, eeAccept };
 
 // general callback
-typedef void(MSOCKETERRORCALLBACK)(void* pCallbackContext, SOCKET sock, SOCKET_ERROR_EVENT ErrorEvent, int &ErrorCode);
+typedef void(MSOCKETERRORCALLBACK)(void* pCallbackContext, SOCKET sock, SOCKET_ERROR_EVENT ErrorEvent, int& ErrorCode);
 // client callback
 typedef bool(MCLIENTRECVCALLBACK)(void* pCallbackContext, SOCKET socket, char* pPacket, DWORD dwSize);
 typedef bool(MCONNECTCALLBACK)(void* pCallbackContext, SOCKET sock);
@@ -59,11 +60,11 @@ typedef bool(MACCEPTCALLBACK)(MSocketObj* pSocketObj);
 typedef bool(MDISCONNECTCLIENTCALLBACK)(MSocketObj* pSocketObj);
 
 /// 소켓 쓰레드
-class MTCPSocketThread : public MThread 
+class MTCPSocketThread : public MThread
 {
 private:
 protected:
-	MTCPSocket*				m_pTCPSocket;
+	MTCPSocket* m_pTCPSocket;
 	MSignalEvent			m_SendEvent;
 	MSignalEvent			m_KillEvent;
 	CRITICAL_SECTION		m_csSendLock;
@@ -74,33 +75,33 @@ protected:
 	MTrafficLog				m_SendTrafficLog;
 	MTrafficLog				m_RecvTrafficLog;
 
-	virtual void OnSocketError(SOCKET sock, SOCKET_ERROR_EVENT ErrorEvent, int &ErrorCode);
+	virtual void OnSocketError(SOCKET sock, SOCKET_ERROR_EVENT ErrorEvent, int& ErrorCode);
 public:
 	MTCPSocketThread(MTCPSocket* pTCPSocket);
 	~MTCPSocketThread();
 	virtual void Run();
 	virtual void Create();
 	virtual void Destroy();
-	void LockSend()			{ EnterCriticalSection(&m_csSendLock); }
-	void UnlockSend()		{ LeaveCriticalSection(&m_csSendLock); }
-	bool IsActive()			{ return m_bActive; }
+	void LockSend() { EnterCriticalSection(&m_csSendLock); }
+	void UnlockSend() { LeaveCriticalSection(&m_csSendLock); }
+	bool IsActive() { return m_bActive; }
 
-	int GetSendTraffic()	{ return m_SendTrafficLog.GetTrafficSpeed(); }
-	int GetRecvTraffic()	{ return m_RecvTrafficLog.GetTrafficSpeed(); }
+	int GetSendTraffic() { return m_SendTrafficLog.GetTrafficSpeed(); }
+	int GetRecvTraffic() { return m_RecvTrafficLog.GetTrafficSpeed(); }
 
-	void*						m_pCallbackContext;
-	MSOCKETERRORCALLBACK*		m_fnSocketErrorCallback;
+	void* m_pCallbackContext;
+	MSOCKETERRORCALLBACK* m_fnSocketErrorCallback;
 };
 
 /// 클라이언트용 소켓 쓰레드
-class MClientSocketThread : public MTCPSocketThread 
+class MClientSocketThread : public MTCPSocketThread
 {
 private:
 protected:
 	TCPSendList				m_SendList;			// Sending priority Low	(Safe|Normal) Packet
 	TCPSendList				m_TempSendList;		// Temporary Send List for Sync
 
-	size_t GetSendWaitQueueCount()	{ return m_TempSendList.size(); }
+	size_t GetSendWaitQueueCount() { return m_TempSendList.size(); }
 
 	bool OnConnect(SOCKET sock);
 	bool OnRecv(SOCKET socket, char* pPacket, DWORD dwSize);
@@ -115,15 +116,15 @@ public:
 	bool PushSend(char* pPacket, DWORD dwPacketSize);
 
 	bool OnDisconnect(SOCKET sock);
-	int GetSendItemCount()	{ return (int)m_SendList.size(); }
+	int GetSendItemCount() { return (int)m_SendList.size(); }
 
-	MCLIENTRECVCALLBACK*	m_fnRecvCallback;
-	MCONNECTCALLBACK*		m_fnConnectCallback;
-	MDISCONNECTCALLBACK*	m_fnDisconnectCallback;
+	MCLIENTRECVCALLBACK* m_fnRecvCallback;
+	MCONNECTCALLBACK* m_fnConnectCallback;
+	MDISCONNECTCALLBACK* m_fnDisconnectCallback;
 };
 
 /// 서버용 소켓 쓰레드
-class MServerSocketThread : public MTCPSocketThread 
+class MServerSocketThread : public MTCPSocketThread
 {
 private:
 	WSAEVENT				m_EventArray[WSA_MAXIMUM_WAIT_EVENTS];
@@ -142,21 +143,21 @@ protected:
 	MSocketObj* InsertSocketObj(SOCKET sock, HANDLE event);
 public:
 	MServerSocketThread(MTCPSocket* pTCPSocket);
-	~MServerSocketThread();	
+	~MServerSocketThread();
 
 	void Disconnect(MSocketObj* pSocketObj);
-	bool PushSend(MSocketObj* pSocketObj, char *pPacket, DWORD dwPacketSize);
+	bool PushSend(MSocketObj* pSocketObj, char* pPacket, DWORD dwPacketSize);
 	virtual void Run();
 	virtual void Destroy();
 	virtual void Create();
-	void LockSocket()	{ EnterCriticalSection(&m_csSocketLock); }
-	void UnlockSocket()	{ LeaveCriticalSection(&m_csSocketLock); }
+	void LockSocket() { EnterCriticalSection(&m_csSocketLock); }
+	void UnlockSocket() { LeaveCriticalSection(&m_csSocketLock); }
 
 	SocketList					m_SocketList;
 
-	MSERVERRECVCALLBACK*		m_fnRecvCallback;
-	MACCEPTCALLBACK*			m_fnAcceptCallback;
-	MDISCONNECTCLIENTCALLBACK*	m_fnDisconnectClientCallback;
+	MSERVERRECVCALLBACK* m_fnRecvCallback;
+	MACCEPTCALLBACK* m_fnAcceptCallback;
+	MDISCONNECTCLIENTCALLBACK* m_fnDisconnectClientCallback;
 };
 
 /// TCP 소켓 상위 클래스
@@ -167,7 +168,7 @@ protected:
 	bool						m_bInitialized;
 	int							m_nPort;			// 포트
 	SOCKET						m_Socket;			// My Socket
-	MTCPSocketThread*			m_pSocketThread;
+	MTCPSocketThread* m_pSocketThread;
 
 	virtual bool Initialize();
 	virtual void Finalize();
@@ -176,21 +177,25 @@ protected:
 public:
 	MTCPSocket();
 	virtual ~MTCPSocket();
-	SOCKET GetSocket()			{ return m_Socket; }
-	int GetPort()				{ return m_nPort; }
+	SOCKET GetSocket() { return m_Socket; }
+	int GetPort() { return m_nPort; }
 	bool IsActive() { return m_pSocketThread->IsActive(); }
 	void GetTraffic(int* nSendTraffic, int* nRecvTraffic) {
 		*nSendTraffic = m_pSocketThread->GetSendTraffic();
 		*nRecvTraffic = m_pSocketThread->GetRecvTraffic();
 	}
-	void SetSocketErrorCallback(MSOCKETERRORCALLBACK pCallback) 
-					{ m_pSocketThread->m_fnSocketErrorCallback = pCallback; }
-	void SetCallbackContext(void* pCallbackContext) 
-					{ m_pSocketThread->m_pCallbackContext = pCallbackContext; }
+	void SetSocketErrorCallback(MSOCKETERRORCALLBACK pCallback)
+	{
+		m_pSocketThread->m_fnSocketErrorCallback = pCallback;
+	}
+	void SetCallbackContext(void* pCallbackContext)
+	{
+		m_pSocketThread->m_pCallbackContext = pCallbackContext;
+	}
 };
 
 /// TCP 소켓 Server 클래스
-class MServerSocket: public MTCPSocket
+class MServerSocket : public MTCPSocket
 {
 private:
 protected:
@@ -207,21 +212,26 @@ public:
 	bool Close();
 	bool Disconnect(MSocketObj* pSocketObj);		// Server에서만 사용 
 
-	bool Send(MSocketObj* pSocketObj, char* pPacket, DWORD dwPacketSize);	
+	bool Send(MSocketObj* pSocketObj, char* pPacket, DWORD dwPacketSize);
 
 
 	void SetRecvCallback(MSERVERRECVCALLBACK pCallback) { ((MServerSocketThread*)(m_pSocketThread))->m_fnRecvCallback = pCallback; }
 	void SetAcceptCallback(MACCEPTCALLBACK pCallback) { ((MServerSocketThread*)(m_pSocketThread))->m_fnAcceptCallback = pCallback; }
 	void SetDisconnectClientCallback(MDISCONNECTCLIENTCALLBACK pCallback) { ((MServerSocketThread*)(m_pSocketThread))->m_fnDisconnectClientCallback = pCallback; }
 
-	SocketList* GetClientList()	{ return &((MServerSocketThread*)(m_pSocketThread))->m_SocketList; }
+	SocketList* GetClientList() { return &((MServerSocketThread*)(m_pSocketThread))->m_SocketList; }
 
-	char* GetLocalIPString()	{ return inet_ntoa(m_LocalAddress.sin_addr); }
-	DWORD GetLocalIP()			{ return m_LocalAddress.sin_addr.S_un.S_addr; }
+	void GetLocalIPString(char* szBuffer, size_t bufferSize) const {
+		if (inet_ntop(AF_INET, &(m_LocalAddress.sin_addr), szBuffer, bufferSize) == nullptr) {
+			// Handle error if conversion fails (you can use strerror to get more information if needed)
+			strncpy(szBuffer, "Invalid IP", bufferSize);
+		}
+	}
+	DWORD GetLocalIP() const { return m_LocalAddress.sin_addr.S_un.S_addr; }
 };
 
 /// TCP 소켓 Client 클래스
-class MClientSocket: public MTCPSocket
+class MClientSocket : public MTCPSocket
 {
 private:
 protected:
@@ -238,7 +248,7 @@ public:
 
 	bool Connect(SOCKET* pSocket, char* szIP, int nPort);			// Client에서만 사용
 	bool Disconnect();
-	bool Send(char *pPacket, DWORD dwPacketSize);
+	bool Send(char* pPacket, DWORD dwPacketSize);
 
 	virtual bool SimpleDisconnect();	// -by 추교성.
 
@@ -246,7 +256,7 @@ public:
 	void SetConnectCallback(MCONNECTCALLBACK pCallback) { ((MClientSocketThread*)(m_pSocketThread))->m_fnConnectCallback = pCallback; }
 	void SetDisconnectCallback(MDISCONNECTCALLBACK pCallback) { ((MClientSocketThread*)(m_pSocketThread))->m_fnDisconnectCallback = pCallback; }
 
-	const char* GetHost()	{ return m_szHost; }
+	const char* GetHost() { return m_szHost; }
 };
 
 
